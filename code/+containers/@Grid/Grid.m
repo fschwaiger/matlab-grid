@@ -314,7 +314,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = reject(self, fcn);
         self = retain(self, dims, reduceFcn);
         self = slice(self, varargin);
-        self = save(self, file);
+        self = save(self, file, varargin);
         self = sort(self);
         self = sparse(self);
         [self, const] = squeeze(self);
