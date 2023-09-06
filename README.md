@@ -9,6 +9,7 @@ Conceptually, `containers.Grid` relates to n-dimensional matrices like a *MATLAB
 - `Data` captures the n-dimensional data matrix
 - `Iter` captures each dimension iterator values
 - `Dims` captures the names of each dimension
+- `User` captures any user-defined data
 
 The key benefit of using the grid class lies in the vast amount of transformations it provides, most of which can be chained:
 
@@ -37,15 +38,11 @@ The whole alphabetical list of grid operations is:
 | [loadgrid](#grid-utilities)            | [makegrid](#grid-utilities)           | [map](#grid-content-transformations)   | [ndims](#grid-analysis)                | [numel](#grid-analysis)                 |
 | [only](#grid-content-transformations)  | [union](#grid-joins)              | [partition](#grid-parallelisation)     | [permute](#grid-form-transformations)  | [pipe](#grid-utilities)                 |
 | [pluck](#grid-content-transformations) | [reject](#grid-form-transformations)  | [retain](#grid-form-transformations)   | [save](#grid-utilities)                | [savegrid](#grid-utilities)             |
-| [slice](#grid-slicing)                 | [sort](#grid-form-transformations)    | [sparse](#sparse-and-dense-grids)      | [struct](#grid-utilities)              |                                         |                                         |
+| [slice](#grid-slicing)                 | [sort](#grid-form-transformations)    | [sparse](#sparse-and-dense-grids)      | [struct](#grid-utilities)              | [at](#grid-slicing)                     |
 
-:::info
 The grid class is inspired by [Laravel Collections](https://laravel.com/docs/9.x/collections).
-:::
 
-:::tip
-This document provides an overview. For detailed help, use `help containers.Grid/funcname`.
-:::
+The following sections provide an overview. For detailed help, use `help containers.Grid/funcname`.
 
 
 ## Grid Slicing
@@ -88,6 +85,13 @@ You can select values via function handle evaluation (must return true or false)
 
 ```matlab
 grid(@(x) x == 42)
+```
+
+You can access a value and its iterator by linear index using `at`:
+
+```matlab
+data = grid.at(42)
+[data, iter] = grid.at(42)
 ```
 
 All these subreferencing operations are applicable to assignments as well. Use `()` to insert a sub-grid and `{}` to insert data.
@@ -139,9 +143,7 @@ grid.filter(@(x) x == 42)
 grid.filter(@not) % to search for 0
 ```
 
-:::tip
 The result of the `filter()` operation may or may not be sparse. See [Sparse and Dense Grids] for more information. The follow-up operations you can chain is not affected.
-:::
 
 Finally, `reject()` is the logical opposite of `filter()`. Both command achieve the same:
 
@@ -164,13 +166,9 @@ grid = map(grid1, grid2, @evidenceWithTwoInputs)
 [grid1, grid2] = map(grid3, grid4, @fcnWithTwoInputsAndOutputs)
 ```
 
-:::tip
 `map()` will automatically run in parallel if the grid was `distributed()` before.
-:::
 
-:::tip
 For any mapping, grid dimensions do not have to be identical. It is sufficient that both grids satisfy `iscompatible()`.
-:::
 
 When working with structure or object grids (i.e. grids containing `struct` or objects as `Data`), you can use `except()`, `only()` and `pluck()` to work with fields and properties:
 
@@ -258,7 +256,7 @@ An example for an inner join:
 >> grid_2 = makegrid(rand(3,3,3), {1:3, 2:4, 1:3}, ["b", "c", "d"]);
 >> joined = intersect(grid_1, grid_2, @mean)
 joined =
-  2-dimensional containers.Grid containing double with iterators:
+  2-dimensional Grid containing double with iterators:
 
     b: [1, 2, 3]
     c: [2, 3]
@@ -271,7 +269,7 @@ The same example for an outer join:
 ```matlab
 >> joined = union(grid_1, grid_2, @mean, nan)
 joined =
-  4-dimensional containers.Grid containing double with iterators:
+  4-dimensional Grid containing double with iterators:
 
     a: [1, 2, 3]
     b: [1, 2, 3]
@@ -297,14 +295,14 @@ To convert (dense) grids into sparse grids manually and vice versa, use the func
 ```matlab
 >> envelope = tico('polarion', 'grid', 'PAR-108').filter()
 envelope =
-  22-dimensional sparse containers.Grid containing logical with iterators:
+  22-dimensional sparse Grid containing logical with iterators:
     ...
 
   1307 iterations total
 
 >> envelope.dense(false) % must specify neutral element
 envelope =
-  22-dimensional containers.Grid containing logical with iterators:
+  22-dimensional Grid containing logical with iterators:
     ...
 
   4704 iterations total (1307 containing <true>)
@@ -337,7 +335,7 @@ grid = grid.distributed().map(@workInParallel).gather()
 You can also distribute a grid on construction, which is similar to matrices:
 
 ```matlab
-grid = containers.Grid(data, iter, dims, 'distributed')
+grid = makegrid(data, iter, dims, 'distributed')
 ```
 
 Using the partitioning approach, you have more fine control, which iterations are included with each subspace. However, this requires you to specify a mapping function that returns bin values 1-4 for each grid element. Read more in `help containers.Grid/partition`.
