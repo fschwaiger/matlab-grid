@@ -18,10 +18,10 @@ function self = retain(self, dims, reduceFcn)
     %
     % An example where only two dimensions are retained:
     %
-    %    grid = tico.Grid([], {1:8, 1:9, 1:10}, ["a", "b", "c"])
+    %    grid = containers.Grid([], {1:8, 1:9, 1:10}, ["a", "b", "c"])
     %    grid = grid.retain(["b", "c"], @mean)
     %
-    % See also tico.Grid/collapse
+    % See also containers.Grid/collapse
 
     % the user can specify dimension indices as logical array
     if islogical(dims)

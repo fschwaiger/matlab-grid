@@ -4,7 +4,7 @@ function [data, iter] = first(self, fcn)
     %   data = grid.first(fcn)
 
     arguments
-        self tico.Grid
+        self containers.Grid
         fcn (1,1) function_handle = @(x) x ~= 0
     end
 

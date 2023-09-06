@@ -4,7 +4,7 @@ function self = only(self, keys)
     % See also rmfield
 
     arguments
-        self tico.Grid
+        self containers.Grid
         keys (1,:) string
     end
 

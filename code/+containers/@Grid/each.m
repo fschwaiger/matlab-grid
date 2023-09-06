@@ -1,7 +1,7 @@
 function each(varargin)
     % Alias for map() with no output arguments.
     %
-    % See also tico.Grid/map
+    % See also containers.Grid/map
 
     map(varargin{:});
 end

@@ -1,5 +1,5 @@
 function list = collect(data, keys)
-    % Creates a 1D collection array (uses tico.Grid internally).
+    % Creates a 1D collection array (uses containers.Grid internally).
     %
     %    list = collect(data)
     %    list = collect(data, keys)

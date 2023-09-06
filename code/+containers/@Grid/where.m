@@ -8,10 +8,10 @@ function self = where(self, value)
     % A sparse grid has a single struct iterator with all possible
     % combinations of iterators.
     %
-    % See also tico.Grid/sparse, tico.Grid/filter
+    % See also containers.Grid/sparse, containers.Grid/filter
 
     arguments
-        self tico.Grid
+        self containers.Grid
         value (1,1)
     end
 

@@ -1,9 +1,9 @@
 function grid = loadgrid(file)
-    % Loads a tico.Grid from a MAT file with the properties as variables.
+    % Loads a containers.Grid from a MAT file with the properties as variables.
     %
-    % See also load, tico.Grid
+    % See also load, containers.Grid
 
     %#release include file ../resources/licenseHeader.m
 
-    grid = tico.Grid(load(file, 'Data', 'Iter', 'Dims'));
+    grid = containers.Grid(load(file, 'Data', 'Iter', 'Dims'));
 end

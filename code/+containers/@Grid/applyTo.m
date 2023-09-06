@@ -14,7 +14,7 @@ function self = applyTo(self, testCase, options)
     % See also sltest.TestCase
 
     arguments
-        self tico.Grid
+        self containers.Grid
         testCase (1,1) sltest.testmanager.TestCase
         options.FilterDisabled (1,1) logical = false
     end

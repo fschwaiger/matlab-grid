@@ -3,7 +3,7 @@ function n = numel(self)
     %
     %   n = numel(grid)
     %
-    % See also tico.Grid/size
+    % See also containers.Grid/size
 
     n = numel(self.Data);
 end

@@ -6,7 +6,7 @@ function varargout = map(self, varargin)
     %   [grid_1, ... grid_m] = map(grid_1, ... grid_n, mapFcn)
     %   [grid_1, ... grid_m] = map(grid_1, ... grid_n, mapFcn, errorFcn)
     %
-    % See also tico.Grid
+    % See also containers.Grid
 
     % assign inputs
     other = cellfun(@(v) isa(v, class(self)), varargin);

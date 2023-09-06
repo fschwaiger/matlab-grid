@@ -14,7 +14,7 @@ function self = intersect(self, with, joinFcn, reduceFcnSelf, reduceFcnWith)
     % joins, both for pairwise element joins and reduce operations,
     % if dimension names overlap partially.
     %
-    % See also tico.Grid/union, tico.Grid/join
+    % See also containers.Grid/union, containers.Grid/join
 
     if nargin < 3
         joinFcn = @join;

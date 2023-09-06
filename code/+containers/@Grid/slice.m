@@ -4,7 +4,7 @@ function self = slice(self, varargin)
     %   grid = slice(grid, 1:4, 4:5, :)
     %   grid = slice(grid, [true, true], [true, false])
     %
-    % See also tico.Grid/partition
+    % See also containers.Grid/partition
 
     % allow user to slice via logical indexing function
     if nargin == 2 && isa(varargin{1}, 'function_handle')

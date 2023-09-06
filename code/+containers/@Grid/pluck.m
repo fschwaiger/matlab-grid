@@ -5,7 +5,7 @@ function self = pluck(self, key)
     %   result = evidence.pluck("result")
 
     arguments
-        self tico.Grid
+        self containers.Grid
         key (1,1) string
     end
 

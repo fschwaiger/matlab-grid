@@ -4,7 +4,7 @@ function self = dense(self, default)
     %   grid = dense(grid)
     %   grid = dense(grid, default)
     %
-    % See also tico.Grid/sparse
+    % See also containers.Grid/sparse
 
     % nothing to do
     if not(issparse(self))
@@ -31,7 +31,7 @@ function self = dense(self, default)
     dims = transpose(string(fieldnames(iter)));
 
     % create a new dense grid
-    self = tico.Grid( ...
+    self = containers.Grid( ...
         "Data", default, ...
         "Iter", arrayfun(@(name) createiter(iter.(name)), dims, 'Uniform', false), ...
         "Dims", dims, ...

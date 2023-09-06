@@ -18,10 +18,10 @@ function self = collapse(self, dims, reduceFcn)
     %
     % An example where a single dimension is collapsed:
     %
-    %    grid = tico.Grid([], {1:8, 1:9, 1:10}, ["a", "b", "c"])
+    %    grid = containers.Grid([], {1:8, 1:9, 1:10}, ["a", "b", "c"])
     %    grid = grid.collapse("c", @mean)
     %
-    % See also tico.Grid/retain
+    % See also containers.Grid/retain
 
     if isempty(dims)
         % prevent running reduceFcn on each scalar value below

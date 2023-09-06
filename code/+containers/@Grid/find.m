@@ -8,7 +8,7 @@ function [data, iter] = find(self, fcn, k, direction)
     %   last = grid.find(fcn, 1, 'last')
 
     arguments
-        self tico.Grid
+        self containers.Grid
         fcn (1,1) function_handle = @(x) x ~= 0
         k (1,1) double {mustBeNonnegative, mustBeInteger} = 0
         direction (1,1) string {mustBeMember(direction, ["first", "last"])} = "first"

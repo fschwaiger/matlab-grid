@@ -3,7 +3,7 @@ function self = sparse(self)
     %
     %   grid = sparse(grid)
     %
-    % See also tico.Grid
+    % See also containers.Grid
 
     if not(issparse(self))
         self.Iter = reshape(map(self, @(~, at) at).Data, [], 1);

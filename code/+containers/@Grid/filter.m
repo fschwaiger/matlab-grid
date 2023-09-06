@@ -9,10 +9,10 @@ function self = filter(self, fcn)
     % A sparse grid has a single struct iterator with all possible
     % combinations of iterators.
     %
-    % See also tico.Grid/sparse, tico.Grid/reject
+    % See also containers.Grid/sparse, containers.Grid/reject
 
     arguments
-        self tico.Grid
+        self containers.Grid
         fcn (1,1) function_handle = @(x) x ~= 0
     end
 

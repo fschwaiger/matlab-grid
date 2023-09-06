@@ -6,7 +6,7 @@ function [self, const] = squeeze(self)
     %
     % Optionally returns the constant iterators.
     %
-    % See also tico.Grid/collapse
+    % See also containers.Grid/collapse
 
     if issparse(self)
         fixed = false(size(self.Dims));

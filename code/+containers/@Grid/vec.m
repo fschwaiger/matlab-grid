@@ -4,7 +4,7 @@ function varargout = vec(self, varargin)
     %   grid = grid.vec(mapFcn)
     %   [grid_1, ... grid_m] = vec(grid_1, ... grid_n, mapFcn)
     %
-    % See also tico.Grid/map
+    % See also containers.Grid/map
 
     other = cellfun(@(v) isa(v, class(self)), varargin);
     grids = [{self}, varargin(other)];

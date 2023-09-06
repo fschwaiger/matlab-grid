@@ -17,7 +17,7 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
     % given <missing> scalar value. You can specify missing values
     % individually for both grids.
     %
-    % See also tico.Grid/intersect, tico.Grid/join
+    % See also containers.Grid/intersect, containers.Grid/join
 
     if nargin < 4
         missingSelf = feval(class(self.Data), nan);

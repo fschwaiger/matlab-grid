@@ -1,12 +1,12 @@
 classdef Grid < matlab.mixin.CustomDisplay
     % A high-dimension grid object with named dimension iterators.
     %
-    %   grid = tico.Grid(default, iterators, dimensions)
-    %   grid = tico.Grid(true, {-100:50:100, ["down", "up"]}, ["speed", "flaps"])
-    %   grid = tico.Grid(true, {-100:50:100, ["down", "up"]}, ["speed", "flaps"])
-    %   grid = tico.Grid(true, {-100:50:100, ["down", "up"]})
-    %   grid = tico.Grid(true, {-100:50:100, ["down", "up"]})
-    %   grid = tico.Grid(rand(3, 3, 3))
+    %   grid = containers.Grid(default, iterators, dimensions)
+    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]}, ["speed", "flaps"])
+    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]}, ["speed", "flaps"])
+    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]})
+    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]})
+    %   grid = containers.Grid(rand(3, 3, 3))
     %
     % Grid properties:
     %   Data  -  High-dimensional data container.
@@ -75,7 +75,7 @@ classdef Grid < matlab.mixin.CustomDisplay
                 % copy fields over from 3rd party grid containter
                 self = self.fromtrimgrid(varargin{1});
                 parser.Results.Distributed = "no";
-            elseif nargin > 0 && isa(varargin{1}, "tico.Grid")
+            elseif nargin > 0 && isa(varargin{1}, "containers.Grid")
                 % skip setup, copy constructor
                 self = varargin{1};
                 parser.Results.Distributed = "no";
@@ -183,7 +183,7 @@ classdef Grid < matlab.mixin.CustomDisplay
         function varargin = cat(varargin)
             % Fails, because grids cannot be concatenated into arrays.
 
-            error("tico:GridConcat", "tico.Grid cannot be concatenated " + ...
+            error("tico:GridConcat", "containers.Grid cannot be concatenated " + ...
                 "into arrays. Use 'union(g1, g2)' instead if you " + ...
                 "intend to merge the contents of two grids.");
         end
@@ -338,7 +338,7 @@ classdef Grid < matlab.mixin.CustomDisplay
         function self = loadobj(data)
             % Reinstantiates an object from given struct data
 
-            self = tico.Grid(data);
+            self = containers.Grid(data);
         end
     end
 
@@ -356,7 +356,7 @@ classdef Grid < matlab.mixin.CustomDisplay
                 d = ndims(self);
                 s = '';
             end
-            text = sprintf('  %d-dimensional%s %s containing %s with iterators:\n', d, s, link('tico.Grid'), link(class(self.Data)));
+            text = sprintf('  %d-dimensional%s %s containing %s with iterators:\n', d, s, link('containers.Grid'), link(class(self.Data)));
         end
 
         function text = getFooter(self)

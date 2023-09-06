@@ -1,7 +1,7 @@
 function self = permute(self, dims)
     % Reorders grid dimensions.
     %
-    %   grid = tico.Grid(rand(8, 9, 10), "Dims", ["a", "b", "c"])
+    %   grid = containers.Grid(rand(8, 9, 10), "Dims", ["a", "b", "c"])
     %   permute(grid, [3, 1, 2])
     %   permute(grid, ["c", "a", "b"])
 

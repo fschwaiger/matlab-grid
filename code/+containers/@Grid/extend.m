@@ -6,7 +6,7 @@ function self = extend(self, dims, iter)
     % Extends the grid onto new dimensions or extends existing
     % dimension iterators.
     %
-    % See also tico.Grid/retain
+    % See also containers.Grid/retain
 
     arguments
         self
@@ -17,7 +17,7 @@ function self = extend(self, dims, iter)
         iter (1,:)
     end
 
-    with = tico.Grid(nan, iter, [dims{:}]);
+    with = containers.Grid(nan, iter, [dims{:}]);
     nIter = cellfun(@numel, with.Iter);
 
     assert(isempty(intersect(with.Dims, self.Dims)), "tico:InvalidInput", ...

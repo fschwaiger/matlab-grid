@@ -9,7 +9,7 @@ function [tf, index] = contains(self, value, varargin)
     %   tf = grid.contains(tico.TestStatus.Success, {"up"})
     %   tf = grid.contains(tico.TestStatus.Success, struct("flaps", "up"))
     %
-    % See also tico.Grid/find
+    % See also containers.Grid/find
 
     if nargin == 3 && iscell(varargin{1})
         varargin = varargin{1};
