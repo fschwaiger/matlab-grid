@@ -15,6 +15,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   User  -  User-defined properties.
     %
     % Grid methods:
+    %   at            -  Returns data and iterator struct at linear index k.
     %   applyTo       -  Adds the iterations from the grid to a simulink test case.
     %   collapse      -  Removes dimensions from the grid using a reducer.
     %   contains      -  Returns whether it contains the given value (at iterator).
@@ -205,6 +206,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
             cat(1, varargin{:});
         end
+        
+        %#release include file at.m
 
         %#release include file applyTo.m
 
@@ -291,6 +294,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
     %#release exclude
     methods % deferred to file, signatures only
+        [data, iter] = at(self, k);
         self = applyTo(self, testCase, options);
         self = collapse(self, dims, reduceFcn);
         [tf, index] = contains(self, value, varargin);
