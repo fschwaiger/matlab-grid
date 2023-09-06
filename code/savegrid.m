@@ -3,8 +3,6 @@ function varargout = savegrid(file, grid)
     %
     % See also save, struct
 
-    %#release include file ../resources/licenseHeader.m
-
     data = struct(grid);
     save(file, '-struct', 'data');
 

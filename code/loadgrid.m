@@ -3,7 +3,5 @@ function grid = loadgrid(file)
     %
     % See also load, containers.Grid
 
-    %#release include file ../resources/licenseHeader.m
-
     grid = containers.Grid(load(file, 'Data', 'Iter', 'Dims'));
 end

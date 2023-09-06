@@ -4,8 +4,6 @@ function list = collect(data, keys)
     %    list = collect(data)
     %    list = collect(data, keys)
 
-    %#release include file ../resources/licenseHeader.m
-
     if nargin < 2
         keys = {1:numel(data)};
     else

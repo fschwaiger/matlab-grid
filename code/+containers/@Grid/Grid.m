@@ -54,10 +54,6 @@ classdef Grid < matlab.mixin.CustomDisplay
     %
     % See also makegrid
 
-    %#release include file ../../../resources/licenseHeader.m
-
-    %#release include file ../../../resources/licenseFunction.m
-
     properties (SetAccess = protected)
         % High-dimensional data container.
         Data = []
@@ -376,6 +372,7 @@ classdef Grid < matlab.mixin.CustomDisplay
 
     methods (Access = private)
         %#release include file private/struct2mask.m
+        
         %#release include file private/values2indices.m
     end
 end
@@ -384,4 +381,3 @@ function mustBeCellOrStruct(s)
     assert(iscell(s) || isstruct(s), "grid:InvalidInput", "Property must be either cell or struct array.");
 end
 
-%#release protect
