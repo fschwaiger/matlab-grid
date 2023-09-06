@@ -23,7 +23,7 @@ function varargout = subsasgn(self, s, value)
 
         if s(1).type(1) == '(' && numel(s) > 1
             % select data and continue: grid("a", "b").Data = 42
-            assert(s(2).type(1) == '.' && strcmp(s(2).subs, 'Data'), "tico:InvalidInput", ...
+            assert(s(2).type(1) == '.' && strcmp(s(2).subs, 'Data'), "grid:InvalidInput", ...
                 "When assigning a grid by slice, can only assign the Data property.");
             self.Data = subsasgn(self.Data, [substruct('()', args); s(3:end)], value);
         elseif s(1).type(1) == '('

@@ -10,7 +10,7 @@ function self = permute(self, dims)
     function x = failIfIncomoplete(varargin) %#ok
         % should never be called, if the user specified all dims
 
-        error("tico:InvalidInput", "Input argument 'dims' is incomplete.");
+        error("grid:InvalidInput", "Input argument 'dims' is incomplete.");
     end
 end
 

@@ -1,7 +1,7 @@
 function indices = values2indices(self, values)
     % convert values into index arrays by search
 
-    assert(numel(values) == numel(self.Iter), "tico:InvalidInput", ...
+    assert(numel(values) == numel(self.Iter), "grid:InvalidInput", ...
         "Number of slice values must match number of grid dimensions.");
     indices = cellfun(@findorall, self.Iter, values, 'UniformOutput', false);
 
@@ -24,7 +24,7 @@ function indices = values2indices(self, values)
             index = find(array == search);
         end
 
-        assert(not(isempty(index)), "tico:InvalidInput", ...
+        assert(not(isempty(index)), "grid:InvalidInput", ...
             "Cannot select nonexisting iterator values.");
     end
 end

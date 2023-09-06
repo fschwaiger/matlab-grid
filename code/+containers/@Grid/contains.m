@@ -1,7 +1,12 @@
 function [tf, index] = contains(self, value, varargin)
     % Returns whether it contains the given value (at iterator).
     %
-    %   [tf, index] = grid.contains(value, iterator)
+    %   [tf, index] = grid.contains(value, iteratorAsCell)
+    %   [tf, index] = grid.contains(value, iteratorAsStruct)
+    %   [tf, index] = grid.contains(value, name1, value1, ...)
+    %
+    % Example:
+    %
     %   tf = grid.contains(tico.TestStatus.Success)
     %   tf = grid.contains(tico.TestStatus.Success)
     %   tf = grid.contains(tico.TestStatus.Success, "Flaps", "up")

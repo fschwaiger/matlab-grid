@@ -37,7 +37,7 @@ function self = intersect(self, with, joinFcn, reduceFcnSelf, reduceFcnWith)
 
     % prevent downstream errors while not implemented
     if issparse(self) || issparse(with)
-        error("tico:InvalidUse", "Sparse grid does not support intersect().");
+        error("grid:InvalidUse", "Sparse grid does not support intersect().");
     end
 
     % return an empty grid if there is no overlap on dimensions

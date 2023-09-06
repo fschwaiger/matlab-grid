@@ -134,14 +134,14 @@ classdef Grid < matlab.mixin.CustomDisplay
             assert((isempty(self.Data) && isempty(self.Iter)) || ...
                 (issparse(self) && isequal(size(self.Data), size(self.Iter))) || ...
                 (not(issparse(self)) && isequal(size(self.Data, 1:numel(self.Iter)), cellfun(@numel, self.Iter))), ...
-                "tico:InvalidInput", "The grid data size was different from the iterators.");
+                "grid:InvalidInput", "The grid data size was different from the iterators.");
             assert(issparse(self) || (numel(self.Iter) == ndims(self)), ...
-                "tico:InvalidInput", "Not all iterators have a name, or too many names given.");
+                "grid:InvalidInput", "Not all iterators have a name, or too many names given.");
             assert(not(any(ismissing(self.Dims))), ...
-                "tico:InvalidInput", "Some iterator names are missing strings.");
+                "grid:InvalidInput", "Some iterator names are missing strings.");
             assert(issparse(self) || all(cellfun(@(iter) isstruct(iter) || ...
                 (numel(unique(iter)) == numel(iter) && sum(ismissing(iter)) < 2), self.Iter)), ...
-                "tico:InvalidInput", "Some iterators have non-unique values.");
+                "grid:InvalidInput", "Some iterators have non-unique values.");
 
             % distribute data array
             if strcmpi(parser.Results.Distributed, "distributed") || isequal(parser.Results.Distributed, true)
@@ -183,7 +183,7 @@ classdef Grid < matlab.mixin.CustomDisplay
         function varargin = cat(varargin)
             % Fails, because grids cannot be concatenated into arrays.
 
-            error("tico:GridConcat", "containers.Grid cannot be concatenated " + ...
+            error("grid:GridConcat", "containers.Grid cannot be concatenated " + ...
                 "into arrays. Use 'union(g1, g2)' instead if you " + ...
                 "intend to merge the contents of two grids.");
         end
@@ -345,7 +345,7 @@ classdef Grid < matlab.mixin.CustomDisplay
     methods (Access = protected)
         function text = getHeader(self)
             link = @(x) ['''' x ''''];
-            if tico.util.interactive()
+            if usejava('desktop')
                 link = @(x) sprintf('<a href="matlab:helpPopup %s">%s</a>', x, x);
             end
 
@@ -370,10 +370,11 @@ classdef Grid < matlab.mixin.CustomDisplay
         function g = getPropertyGroups(self)
             if issparse(self)
                 n = min(10, numel(self.Iter));
-                g = matlab.mixin.util.PropertyGroup("- " + arrayfun(@tico.util.map2str, self.Iter(1:n)));
+                d = "- " + arrayfun(@jsonencode, self.Iter(1:n), "Uniform", false);
             else
-                g = matlab.mixin.util.PropertyGroup(cell2struct(self.Iter, self.Dims, 2));
+                d = cell2struct(self.Iter, self.Dims, 2);
             end
+            g = matlab.mixin.util.PropertyGroup(d);
         end
     end
 
@@ -385,7 +386,7 @@ classdef Grid < matlab.mixin.CustomDisplay
 end
 
 function mustBeCellOrStruct(s)
-    assert(iscell(s) || isstruct(s), "tico:InvalidInput", "Property must be either cell or struct array.");
+    assert(iscell(s) || isstruct(s), "grid:InvalidInput", "Property must be either cell or struct array.");
 end
 
 %#release protect

@@ -20,7 +20,7 @@ function self = extend(self, dims, iter)
     with = containers.Grid(nan, iter, [dims{:}]);
     nIter = cellfun(@numel, with.Iter);
 
-    assert(isempty(intersect(with.Dims, self.Dims)), "tico:InvalidInput", ...
+    assert(isempty(intersect(with.Dims, self.Dims)), "grid:InvalidInput", ...
         "Cannot extend the grid onto existing dimensions.");
 
     if issparse(self)

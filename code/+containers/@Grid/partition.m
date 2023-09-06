@@ -42,7 +42,7 @@ function varargout = partition(self, N)
             mask = 2 - mask;
         else
             % user returned an index
-            assert(isnumeric(mask), "tico:InvalidInput", ...
+            assert(isnumeric(mask), "grid:InvalidInput", ...
                 "Partitioning function returned a non-numerical value, should be index.");
             nParts = max(mask, [], 'all');
         end

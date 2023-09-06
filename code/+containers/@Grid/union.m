@@ -49,7 +49,7 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
 
     % prevent downstream errors while not implemented
     if issparse(self) || issparse(with)
-        error("tico:InvalidUse", "Sparse grid does not support union().");
+        error("grid:InvalidUse", "Sparse grid does not support union().");
     end
 
     % extend grids onto same dimensions

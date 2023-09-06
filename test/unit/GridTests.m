@@ -50,9 +50,9 @@ classdef GridTests < AbstractTestCase
         function it_cannot_be_concatenated(test)
             grid = containers.Grid(0, {1:2, 3:4});
 
-            test.verifyError(@() [grid, grid], "tico:GridConcat");
-            test.verifyError(@() [grid; grid], "tico:GridConcat");
-            test.verifyError(@() repmat(grid, 2, 2), "tico:GridConcat");
+            test.verifyError(@() [grid, grid], "grid:GridConcat");
+            test.verifyError(@() [grid; grid], "grid:GridConcat");
+            test.verifyError(@() repmat(grid, 2, 2), "grid:GridConcat");
         end
 
         function it_has_savegrid_that_can_be_chained(test)
@@ -276,7 +276,7 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(size(grid), [11, 9, 8, 10]);
             test.verifyEqual(grid.Iter, {1:11, 1:9, 1:8, 1:10});
             test.verifyEqual(grid.Dims, ["x4", "x2", "x1", "x3"]);
-            test.verifyError(@() grid.permute(["x4", "x2", "x3"]), "tico:InvalidInput");
+            test.verifyError(@() grid.permute(["x4", "x2", "x3"]), "grid:InvalidInput");
         end
 
         function it_can_map_values(test)
@@ -417,7 +417,7 @@ classdef GridTests < AbstractTestCase
             f = containers.Grid(false, {1:3, 1:3, 1  }, ["a", "b", "c"]);
 
             test.verifyError(@() map(t, f, @(a, b, ~) any([a, b])), ...
-                "tico:InvalidInput");
+                "grid:InvalidInput");
         end
 
         function it_cannot_map_over_noncompatible_dims(test)
@@ -425,7 +425,7 @@ classdef GridTests < AbstractTestCase
             f = containers.Grid(false, {1:3, 1:3     }, ["a", "b"     ]);
 
             test.verifyError(@() map(t, f, @(a, b, ~) any([a, b])), ...
-                "tico:InvalidInput");
+                "grid:InvalidInput");
         end
 
         function it_can_check_for_compatibility(test)
@@ -465,9 +465,9 @@ classdef GridTests < AbstractTestCase
 
         function it_must_have_unique_values_in_iterator(test)
             test.verifyError(@() containers.Grid(false, {1:2, [1, 1, nan], 1:3}), ...
-                "tico:InvalidInput");
+                "grid:InvalidInput");
             test.verifyError(@() containers.Grid(false, {1:2, [1, nan, nan], 1:3}), ...
-                "tico:InvalidInput");
+                "grid:InvalidInput");
         end
 
         function it_can_have_single_nan_in_iterator(test)

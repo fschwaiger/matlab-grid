@@ -1,7 +1,7 @@
 function mask = struct2mask(self, values)
     % convert values into index arrays by search
 
-    assert(all(ismember(fieldnames(values), self.Dims)), "tico:InvalidInput", ...
+    assert(all(ismember(fieldnames(values), self.Dims)), "grid:InvalidInput", ...
         "Trying to slice an unknown dimension.");
 
     indices = arrayfun(@(v) values2indices(self, arrayfun(@(name) fieldorall(v, name), self.Dims, "Uniform", 0)), values, "Uniform", 0);
