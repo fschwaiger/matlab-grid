@@ -1,0 +1,5 @@
+coverage.xml
+coverage/
+.release/
+.release-util/
+Manual.pdf

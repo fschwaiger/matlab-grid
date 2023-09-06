@@ -1,0 +1,8 @@
+include:
+  - project: tulrfsd/common/testing/ci-env
+    file: ci-toolbox.yml
+
+variables:
+  RELEASE_INCLUDE: "code,demo,util,resources,*.prj,*.md,CHANGELOG,MANUAL.pdf"
+  RELEASE_EXCLUDE: ".git*,.DS_Store,*.mlapp,resources/pandoc,resources/scripts"
+  MATLAB_VERSION: 2021a
