@@ -71,11 +71,7 @@ classdef Grid < matlab.mixin.CustomDisplay
 
     methods
         function self = Grid(varargin)
-            if nargin > 0 && endsWith(class(varargin{1}), 'TrimGrid')
-                % copy fields over from 3rd party grid containter
-                self = self.fromtrimgrid(varargin{1});
-                parser.Results.Distributed = "no";
-            elseif nargin > 0 && isa(varargin{1}, "containers.Grid")
+            if nargin > 0 && isa(varargin{1}, "containers.Grid")
                 % skip setup, copy constructor
                 self = varargin{1};
                 parser.Results.Distributed = "no";
@@ -379,7 +375,6 @@ classdef Grid < matlab.mixin.CustomDisplay
     end
 
     methods (Access = private)
-        %#release include file private/fromtrimgrid.m
         %#release include file private/struct2mask.m
         %#release include file private/values2indices.m
     end
