@@ -3,5 +3,5 @@ function grid = loadgrid(file)
     %
     % See also load, containers.Grid
 
-    grid = containers.Grid(load(file, 'Data', 'Iter', 'Dims'));
+    grid = containers.Grid(load(file, 'Data', 'Iter', 'Dims', 'User'));
 end

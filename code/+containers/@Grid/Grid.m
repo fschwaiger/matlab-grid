@@ -12,6 +12,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   Data  -  High-dimensional data container.
     %   Iter  -  Cell array of iterator arrays.
     %   Dims  -  String array of iterator names.
+    %   User  -  User-defined properties.
     %
     % Grid methods:
     %   applyTo       -  Adds the iterations from the grid to a simulink test case.
@@ -63,6 +64,9 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
         % String array of iterator names.
         Dims (1,:) string = strings(1, 0)
+
+        % User-defined properties.
+        User = []
     end
 
     methods
@@ -77,6 +81,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                 parser.addOptional("Data", []);
                 parser.addOptional("Iter", {}, @mustBeCellOrStruct);
                 parser.addOptional("Dims", [], @(s) iscellstr(s) || isstring(s));
+                parser.addOptional("User", []);
                 parser.addOptional("Distributed", [], @(s) isstring(s) || ischar(s) || islogical(s));
                 parser.StructExpand = (nargin == 1) && isstruct(varargin{1}) && isfield(varargin{1}, "Data");
                 parser.parse(varargin{:});
@@ -120,6 +125,9 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                     provided = size(parser.Results.Data, 1:numel(required));
                     self.Data = repmat(parser.Results.Data, required ./ provided);
                 end
+
+                % if the user did not specify custom meta data, will have []
+                self.User = parser.Results.User;
             end
 
             % ITER, DIMS and DATA must be consistent in size

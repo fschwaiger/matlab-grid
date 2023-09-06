@@ -5,6 +5,7 @@ function data = struct(self)
     data.Data = self.Data;
     data.Iter = self.Iter;
     data.Dims = self.Dims;
+    data.User = self.User;
 end
 
 %#release exclude file
