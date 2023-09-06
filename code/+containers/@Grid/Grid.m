@@ -354,9 +354,25 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         function text = getFooter(self)
             suffix = '';
             if islogical(self.Data)
-                suffix = sprintf(' (%d containing <true>)', sum(self.Data, 'all'));
+                suffix = sprintf(' (%d are <true>)', sum(self.Data, 'all'));
             end
-            text = sprintf('  %d iterations total%s\n\n', numel(self), suffix);
+
+            bytes = whos('self').bytes;
+            unit = 'bytes';
+            if bytes > 1000
+                bytes = bytes / 1000;
+                unit = 'kB';
+            end
+            if bytes > 1000
+                bytes = bytes / 1000;
+                unit = 'MB';
+            end
+            if bytes > 1000
+                bytes = bytes / 1000;
+                unit = 'GB';
+            end
+
+            text = sprintf('\n  %d iterations total%s, %d %s\n\n', numel(self), suffix, ceil(bytes), unit);
         end
 
         function g = getPropertyGroups(self)
