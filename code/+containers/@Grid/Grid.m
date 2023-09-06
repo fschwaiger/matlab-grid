@@ -328,7 +328,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         [self, const] = squeeze(self);
         data = struct(self);
         varargout = subsref(self, s);
-        varargout = subsasgn(self, s, value);
+        varargout = subsasgn(self, s, varargin);
         self = union(self, with, joinFcn, missingSelf, missingWith);
         varargout = vec(self, varargin);
         self = where(self, value);
