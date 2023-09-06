@@ -1,4 +1,4 @@
-classdef Grid < matlab.mixin.CustomDisplay
+classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     % A high-dimension grid object with named dimension iterators.
     %
     %   grid = containers.Grid(default, iterators, dimensions)
