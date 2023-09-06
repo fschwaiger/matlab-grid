@@ -346,7 +346,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         function text = getHeader(self)
             link = @(x) ['''' x ''''];
             if usejava('desktop')
-                link = @(x) sprintf('<a href="matlab:helpPopup %s">%s</a>', x, x);
+                link = @(x) sprintf('<a href="matlab:helpPopup %s">%s</a>', x, regexprep(x, ".*\.", ""));
             end
 
             if issparse(self)
@@ -380,7 +380,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                 unit = 'GB';
             end
 
-            text = sprintf('\n  %d iterations total%s, %d %s\n\n', numel(self), suffix, ceil(bytes), unit);
+            text = sprintf('\n  = %d iterations%s, %d %s\n\n', numel(self), suffix, ceil(bytes), unit);
         end
 
         function g = getPropertyGroups(self)
