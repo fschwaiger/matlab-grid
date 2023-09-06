@@ -358,9 +358,6 @@ classdef GridTests < AbstractTestCase
         end
 
         function it_can_be_parallelized(test)
-            % only run this test in CI
-            test.assumeEmpty(env('SKIP_SLOW_TESTS', ''));
-
             pool = parpool('local', 2);
             finally = onCleanup(@() delete(pool));
 
@@ -386,35 +383,6 @@ classdef GridTests < AbstractTestCase
             parallelResult = map(distributed(grid1), distributed(grid2), @(a, b, k) a + b + k.x1).gather();
             serialResult = map(grid1, grid2, @(a, b, k) a + b + k.x1);
             test.verifyEqual(parallelResult, serialResult);
-        end
-
-        function it_can_be_init_from_trim_grid(test)
-            % only run this test in CI
-            test.assumeEmpty(env('SKIP_SLOW_TESTS', ''));
-
-            [~, remote] = system("git remote get-url origin");
-            host = extractBefore(remote, "tulrfsd");
-            repo = host + "tulrfsd/simulation/tlmpc.git";
-
-            % temporary folder for class definitions
-            temp = test.applyFixture(matlab.unittest.fixtures.TemporaryFolderFixture());
-            test.assertEqual(system(sprintf("git clone --depth 1 %s %s", repo, temp.Folder)), 0);
-            test.applyFixture(matlab.unittest.fixtures.PathFixture(temp.Folder + "/code"));
-            test.applyFixture(matlab.unittest.fixtures.PathFixture(fileparts(mfilename("fullpath")) + "/../data/grid"));
-
-            % with the source code, we can finally open the trim grid file
-            source = test.assertWarningFree(@() load("trimgrid.mat").trimGrid);
-            test.assertInstanceOf(source, "tulrfsd.tlmpc.trim.TrimGrid");
-            test.assertTrue(isvalid(source));
-
-            % the TrimGrid should now be convertible into containers.Grid
-            target = test.verifyWarningFree(@() containers.Grid(source));
-            test.verifyInstanceOf(target, "containers.Grid");
-            test.verifyEqual(size(target), [10, 16]);
-
-            % with the source code, we can finally open the trim grid file
-            singular = test.verifyWarningFree(@() containers.Grid(load("singular-trimgrid.mat").trimGrid));
-            test.verifyEqual(size(singular), ones(1, 17));
         end
 
         function it_can_partition_into_varargout(test)
@@ -806,30 +774,10 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(fields(b.Data), {'b'});
         end
 
-        function it_can_join_test_status_without_mentioning_implied_function(test)
-            a = containers.Grid(tico.TestStatus.Success, {1:3, 1:5});
-            b = containers.Grid(tico.TestStatus.Success, {3:5, 1:5});
-
-            % here we omit the third argument, the @join function is implied
-            test.verifyWarningFree(@() union(a, b));
-            test.verifyWarningFree(@() intersect(a, b));
-
-            % can also work with cell array of grids
-            test.verifyWarningFree(@() union(a, {b, b, b}));
-            test.verifyWarningFree(@() intersect(a, {b, b, b}));
-        end
-
-        function it_can_join_with_empty_set(test)
-            a = containers.Grid(tico.TestStatus.Success, {1:3, 1:5});
-            b = containers.Grid(tico.TestStatus.Success, {}, {});
-            grid = union(a, b);
-            test.verifyEqual(grid, a);
-        end
-
         function it_can_be_applied_to_simulink_test_case(test)
             folder = currentProject().RootFolder + "/test/data/iter";
             test.applyFixture(matlab.unittest.fixtures.CurrentFolderFixture(folder));
-            test.verifySize(tico('find', '-d', '.'), [1, 15]);
+            test.verifySize(testsuite('test.mldatx'), [1, 15]);
         end
 
         function it_can_create_a_mixed_sparse_dense_grid(test)
