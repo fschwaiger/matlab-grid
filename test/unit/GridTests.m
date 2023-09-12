@@ -796,5 +796,29 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(size(grid.Data), [12, 1]);
             test.verifyEqual(size(grid.Iter), [12, 1]);
         end
+
+        function it_can_specify_user_data_in_constructor(test)
+            grid = containers.Grid(1, {1:3, 1:4}, ["a", "b"], "User", 42);
+            test.verifyEqual(grid.User, 42);
+        end
+        
+        function it_can_be_distributed_via_constructor(test)
+            grid = containers.Grid(1, {1:3, 1:4}, ["a", "b"], "distributed");
+            test.verifyTrue(isdistributed(grid.Data));
+        end
+
+        function it_can_be_both_distributed_and_have_user_data(test)
+            grid = containers.Grid(1, {1:3, 1:4}, ["a", "b"], "distributed", "User", 42);
+            test.verifyTrue(isdistributed(grid.Data));
+            test.verifyEqual(grid.User, 42);
+        end
+
+        function it_can_use_named_assignment_in_constructor(test)
+            grid = containers.Grid("Data", 1, "Iter", {1:3, 1:4}, "Dims", ["a", "b"], "User", 42);
+            test.verifyEqual(grid.Data, ones(3, 4));
+            test.verifyEqual(grid.Iter, {1:3, 1:4});
+            test.verifyEqual(grid.Dims, ["a", "b"]);
+            test.verifyEqual(grid.User, 42);
+        end
     end
 end

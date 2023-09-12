@@ -82,8 +82,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                 parser.addOptional("Data", []);
                 parser.addOptional("Iter", {}, @mustBeCellOrStruct);
                 parser.addOptional("Dims", [], @(s) iscellstr(s) || isstring(s));
+                parser.addOptional("Distributed", [], @(s) islogical(s) || strcmpi(s, "distributed"));
                 parser.addOptional("User", []);
-                parser.addOptional("Distributed", [], @(s) isstring(s) || ischar(s) || islogical(s));
                 parser.StructExpand = (nargin == 1) && isstruct(varargin{1}) && isfield(varargin{1}, "Data");
                 parser.parse(varargin{:});
 
