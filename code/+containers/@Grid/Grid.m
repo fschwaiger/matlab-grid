@@ -409,3 +409,4 @@ function mustBeCellOrStruct(s)
     assert(iscell(s) || isstruct(s), "grid:InvalidInput", "Property must be either cell or struct array.");
 end
 
+%#release rename file ../Grid.m
