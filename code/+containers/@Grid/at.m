@@ -27,7 +27,7 @@ function [data, iter] = at(self, k)
     data = self.Data(k);
     
     % cell array of iterators needs to be subscripted
-    iter = cellfun(@(it, kk) it(kk), self.Iter, subs, "Uniform", false);
+    iter = cellfun(@(it, kk) it(:, kk), self.Iter, subs, "Uniform", false);
     iter = cell2struct(iter, self.Dims, 2);
 end
 

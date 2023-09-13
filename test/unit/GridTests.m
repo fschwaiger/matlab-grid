@@ -104,12 +104,6 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid.Dims, dims);
         end
 
-        function it_has_iterators_that_are_always_row_vectors(test)
-            actual = containers.Grid(transpose(1:3), {transpose(1:3)});
-            expect = containers.Grid(transpose(1:3), {          1:3 });
-            test.verifyEqual(actual, expect);
-        end
-
         function it_can_omit_optionals(test)
             grid = containers.Grid(false(3, 2, 4));
             test.verifyEqual(grid.Iter, {1:3, 1:2, 1:4});
@@ -358,8 +352,10 @@ classdef GridTests < AbstractTestCase
         end
 
         function it_can_be_parallelized(test)
-            pool = parpool('local', 2);
-            finally = onCleanup(@() delete(pool));
+            if isempty(gcp('nocreate'))
+                pool = parpool('local', 2);
+                finally = onCleanup(@() delete(pool));
+            end
 
             grid = containers.Grid(false(10, 10, 10, 10, 'distributed'));
             grid = test.verifyWarningFree(@() grid.map(@not));
@@ -819,6 +815,28 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid.Iter, {1:3, 1:4});
             test.verifyEqual(grid.Dims, ["a", "b"]);
             test.verifyEqual(grid.User, 42);
+        end
+
+        function it_can_have_vector_iterators(test)
+            iter = {1:3, 1:4, [[1;2;3], [4;5;6]]};
+            dims = ["a", "b", "c"];
+            grid = containers.Grid(1, iter, dims);
+            test.verifyEqual(size(grid), [3, 4, 2]);
+            test.verifyEqual(grid.Iter, iter);
+            test.verifyEqual(grid.Dims, dims);
+            test.verifyEqual(grid.Data, ones(3, 4, 2));
+        end
+
+        function it_can_map_over_vector_iterators(test)
+            grid = containers.Grid(1, {1:3, 1:4, [[1;2;3], [4;5;6]]}, ["a", "b", "c"]);
+            grid = grid.map(@(x, p) p);
+            test.verifyEqual(size(grid), [3, 4, 2]);
+            test.verifyEqual(grid.at(1), struct("a", 1, "b", 1, "c", [1;2;3]));
+        end
+
+        function it_throws_warning_when_column_iterators_are_used(test)
+            test.verifyWarning(@() containers.Grid(1, {1:3, [1;2;3]}), "grid:ColumnIterator");
+            test.verifyWarningFree(@() containers.Grid(1, {1:3, [[1;2;3], [4;5;6]]}));
         end
     end
 end

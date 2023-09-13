@@ -22,9 +22,9 @@ function varargout = size(self)
         s = ones(dims);
         names = self.Dims;
         for k = 1:numel(s)
-            iter = unique([self.Iter.(names(k))]);
-            miss = ismissing(iter);
-            s(k) = numel(iter) - sum(miss) + any(miss);
+            iter = unique(transpose([self.Iter.(names(k))]), 'rows');
+            miss = all(ismissing(iter), 1);
+            s(k) = size(iter, 1) - sum(miss) + any(miss);
         end
     end
 end

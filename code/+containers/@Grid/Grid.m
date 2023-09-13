@@ -102,7 +102,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                 elseif isstruct(parser.Results.Iter)
                     self.Iter = reshape(parser.Results.Iter, [], 1);
                 else
-                    self.Iter = cellfun(@(iter) reshape(iter, 1, []), parser.Results.Iter, "Uni", 0);
+                    self.Iter = parser.Results.Iter;
                 end
 
                 % zeros / repmat would produce square matrices with only one argument.
@@ -111,7 +111,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                     realGridSizes = [numel(self.Iter), 1];
                 else
                     realGridSizes = repmat(numel(self.Iter), 1, 2);
-                    realGridSizes(1:numel(self.Iter)) = cellfun(@numel, self.Iter);
+                    realGridSizes(1:numel(self.Iter)) = cellfun(@(it) size(it, 2), self.Iter);
                 end
 
                 if isempty(parser.Results.Data)
@@ -134,15 +134,23 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
             % ITER, DIMS and DATA must be consistent in size
             assert((isempty(self.Data) && isempty(self.Iter)) || ...
                 (issparse(self) && isequal(size(self.Data), size(self.Iter))) || ...
-                (not(issparse(self)) && isequal(size(self.Data, 1:numel(self.Iter)), cellfun(@numel, self.Iter))), ...
+                (not(issparse(self)) && isequal(size(self.Data, 1:numel(self.Iter)), cellfun(@(it) size(it, 2), self.Iter))), ...
                 "grid:InvalidInput", "The grid data size was different from the iterators.");
             assert(issparse(self) || (numel(self.Iter) == ndims(self)), ...
                 "grid:InvalidInput", "Not all iterators have a name, or too many names given.");
             assert(not(any(ismissing(self.Dims))), ...
                 "grid:InvalidInput", "Some iterator names are missing strings.");
-            assert(issparse(self) || all(cellfun(@(iter) isstruct(iter) || ...
-                (numel(unique(iter)) == numel(iter) && sum(ismissing(iter)) < 2), self.Iter)), ...
+            assert(issparse(self) || all(cellfun(@(it) isstruct(it) || ...
+                ((iscell(it) || isstring(it)) && numel(unique(it)) == numel(it) && sum(ismissing(it)) < 2) || ...
+                (ismatrix(it) && size(unique(it', 'rows'), 1) == size(it, 2) && sum(all(ismissing(it), 1), 2) < 2), self.Iter)), ...
                 "grid:InvalidInput", "Some iterators have non-unique values.");
+
+            % if any iterator is a column vector, warn that the user might want to transpose it
+            if iscell(self.Iter) && any(cellfun(@(it) size(it, 1) > 1 && size(it, 2) == 1, self.Iter))
+                warning("grid:ColumnIterator", "Some iterators are column vectors. " + ...
+                    "You might want to transpose them to row vectors. You can silence " + ...
+                    "this warning via 'warning('off', 'grid:ColumnIterator')'.");
+            end
 
             % distribute data array
             if strcmpi(parser.Results.Distributed, "distributed") || isequal(parser.Results.Distributed, true)
