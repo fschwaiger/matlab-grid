@@ -845,5 +845,12 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(size(data), [2, 1]);
             test.verifyInstanceOf(data, 'double');
         end
+
+        function it_assigns_via_struct_iterators_in_correct_order(test)
+            grid = containers.Grid(1, {1:3, 'abcd'}, ["a", "b"]);
+            temp = containers.Grid(rand(2, 2), {2:3, 'bc'}, ["a", "b"]).sparse();
+            grid = assign(grid, temp);
+            test.verifyEqual(grid.Data(2:3, 2:3), temp.dense().Data);
+        end            
     end
 end

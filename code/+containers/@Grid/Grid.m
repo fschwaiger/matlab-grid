@@ -15,6 +15,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   User  -  User-defined properties.
     %
     % Grid methods:
+    %   assign        -  Assigns values of other grid to self.
     %   at            -  Returns data and iterator struct at linear index k.
     %   applyTo       -  Adds the iterations from the grid to a simulink test case.
     %   collapse      -  Removes dimensions from the grid using a reducer.
@@ -215,6 +216,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
             cat(1, varargin{:});
         end
+
+        %#release include file assign.m
         
         %#release include file at.m
 
@@ -305,6 +308,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
     %#release exclude
     methods % deferred to file, signatures only
+        self = assign(self, other);
         [data, iter] = at(self, k);
         self = applyTo(self, testCase, options);
         self = collapse(self, dims, reduceFcn);

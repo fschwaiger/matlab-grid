@@ -27,7 +27,7 @@ function varargout = subsasgn(self, s, varargin)
                 "When assigning a grid by slice, can only assign the Data property.");
             self.Data = subsasgn(self.Data, [substruct('()', args); s(3:end)], varargin{:});
         elseif s(1).type(1) == '('
-            % select data and continue: grid("a", "b").Data = 42
+            % select data and continue: grid(...).Data = other.Data
             self.Data = subsasgn(self.Data, [substruct('()', args); s(2:end)], varargin{1}.Data);
         elseif s(1).type(1) == '{' && numel(s) > 1
             % select data and continue: grid{"a", "b"}.myfield = 42
