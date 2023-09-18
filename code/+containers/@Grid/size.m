@@ -19,7 +19,7 @@ function varargout = size(self)
     end
 
     function s = sparsesize(self, dims)
-        s = ones(dims);
+        s = ones(1, numel(dims));
         names = self.Dims;
         for k = 1:numel(s)
             iter = unique(transpose([self.Iter.(names(k))]), 'rows');
