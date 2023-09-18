@@ -26,3 +26,5 @@ function self = sample(self, k)
     mask(indices) = true;
     self = slice(self, mask);
 end
+
+%#release exclude file
