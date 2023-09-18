@@ -838,5 +838,12 @@ classdef GridTests < AbstractTestCase
             test.verifyWarning(@() containers.Grid(1, {1:3, [1;2;3]}), "grid:ColumnIterator");
             test.verifyWarningFree(@() containers.Grid(1, {1:3, [[1;2;3], [4;5;6]]}));
         end
+
+        function it_can_draw_k_random_samples(test)
+            grid = containers.Grid(1, {1:3, 1:4, [[1;2;3], [4;5;6]]}, ["a", "b", "c"]);
+            data = grid.sample(2);
+            test.verifyEqual(size(data), [2, 1]);
+            test.verifyInstanceOf(data, 'double');
+        end
     end
 end

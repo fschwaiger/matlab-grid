@@ -46,6 +46,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   reject        -  Inverse of filter(), rejects entries.
     %   retain        -  Reduces the grid to given dimensions using a reducer.
     %   slice         -  Extracts a subspace from this grid using indices or masks.
+    %   sample        -  Reduce the grid to k random samples.
     %   save          -  Saves the grid to the given filename.
     %   sort          -  Sorts the grid dimensions and iterators.
     %   sparse        -  Flattens the grid so it has a single struct iterator.
@@ -279,6 +280,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
         %#release include file slice.m
 
+        %#release include file sample.m
+
         %#release include file save.m
 
         %#release include file sort.m
@@ -334,6 +337,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = reject(self, fcn);
         self = retain(self, dims, reduceFcn);
         self = slice(self, varargin);
+        [data, iter] = sample(self, k);
         self = save(self, file, varargin);
         self = sort(self);
         self = sparse(self);
