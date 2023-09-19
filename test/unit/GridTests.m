@@ -864,5 +864,18 @@ classdef GridTests < AbstractTestCase
             grid = grid(struct("a", {2, 3}, "b", {[1;2;3], [4;5;6]}));
             test.verifyEqual(numel(grid.Data), 2);
         end
+
+        function it_rethrows_map_error_properly(test)
+            grid = containers.Grid(1, {1:3, 1:4, [[1;2;3], [4;5;6]]}, ["a", "b", "c"]);
+            test.verifyError(@map, "grid:MapError");
+
+            function map()
+                grid = grid.map(@map_with_error);
+            end
+
+            function r = map_with_error(test)
+                error("grid:MapError", "This is a test error");
+            end
+        end
     end
 end

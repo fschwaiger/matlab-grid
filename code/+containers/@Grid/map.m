@@ -18,7 +18,7 @@ function varargout = map(self, varargin)
     if numel(varargin) > 1
         errorFcn = varargin{2};
     else
-        errorFcn = @(e, varargin) rethrow(e);
+        errorFcn = @silentRethrow;
     end
 
     % can only operate on compatible grids
@@ -76,6 +76,10 @@ function varargout = map(self, varargin)
     
     function varargout = mapVecError(e, varargin)
         [varargout{1:nargout}] = errorFcn(e, [varargin{:}]);
+    end
+
+    function unused = silentRethrow(e, varargin) %#ok<STOUT>
+        rethrow(e);
     end
 
     function it = iterator(k)
