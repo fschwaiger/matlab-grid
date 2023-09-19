@@ -325,7 +325,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         [data, iter] = find(self, fcn, k, direction);
         [data, iter] = first(self, fcn);
         self = gather(self);
-        varargout = size(self);
+        varargout = size(self, dims);
         self = intersect(self, with, joinFcn, reduceFcnSelf, reduceFcnWith);
         [isCompatible, areCompatible] = iscompatible(self, varargin);
         tf = isempty(self);

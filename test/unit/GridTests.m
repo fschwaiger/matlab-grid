@@ -243,6 +243,18 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(size(grid.Data{1}), [30, 1]);
         end
 
+        function it_can_collapse_multiple_dimensions(test)
+            n = 0;
+            grid = containers.Grid(rand([5, 5, 5, 4]));
+            grid = grid.collapse(["x2", "x3"], @reduce);
+            function v = reduce(v)
+                test.verifySize(v, [1, 5, 5, 1]);
+                v = mean(v, 'all');
+                n = n + 1;
+            end
+            test.verifyEqual(n, 20);
+        end
+
         function it_can_reduce_down_to_2D(test)
             grid = containers.Grid(rand(10, 10, 10, 10));
             grid = grid.retain([2, 3], @(x) mean(x, 'all'));
@@ -876,6 +888,13 @@ classdef GridTests < AbstractTestCase
             function r = map_with_error(test)
                 error("grid:MapError", "This is a test error");
             end
+        end
+
+        function it_can_get_size_at_dimension(test)
+            grid = containers.Grid(1, {1:3, 1:4, [[1;2;3], [4;5;6]]}, ["a", "b", "c"]);
+            test.verifyEqual(size(grid, 1), 3);
+            test.verifyEqual(size(grid, 2), 4);
+            test.verifyEqual(size(grid, 3), 2);
         end
     end
 end
