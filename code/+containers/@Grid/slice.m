@@ -40,11 +40,18 @@ function self = slice(self, varargin)
 
         % apply the slice
         self = slice(self, split{:});
-
+        
+    elseif isscalar(varargin) && ndims(self) > 1
+        
+        % select as sparse in correct order
+        self = sparse(self);
+        self.Iter = self.Iter(varargin{1});
+        self.Data = self.Data(varargin{1});
+        
     else
 
         % slice the iterators independently, each one according to the respective indexer
-        self.Iter = cellfun(@(iter, arg) reshape(iter(arg), 1, []), self.Iter, varargin, 'Uni', false);
+        self.Iter = cellfun(@(iter, arg) iter(:, arg), self.Iter, varargin, 'Uni', false);
 
         % slice the data according to the given indices
         self.Data = self.Data(varargin{:});

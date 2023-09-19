@@ -11,18 +11,15 @@ function indices = values2indices(self, values)
         if ischar(values) && strcmp(values, ':')
             indices = ':';
         else
-            indices = arrayfun(@(value) findnaneq(iter, value), values);
+            indices = arrayfun(@(k) findnaneq(iter, values(:, k)), 1:size(values, 2));
         end
     end
 
     function index = findnaneq(array, search)
         % either finds a value by equality, or a missing value
 
-        if ismissing(search)
-            index = find(ismissing(array));
-        else
-            index = find(array == search);
-        end
+        index = ismissing(search) & ismissing(array) | array == search;
+        index = find(all(index, 1));
 
         assert(not(isempty(index)), "grid:InvalidInput", ...
             "Cannot select nonexisting iterator values.");

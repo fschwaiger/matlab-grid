@@ -857,6 +857,12 @@ classdef GridTests < AbstractTestCase
             temp = containers.Grid(rand(2, 2), {2:3, 'bc'}, ["a", "b"]).sparse();
             grid = assign(grid, temp);
             test.verifyEqual(grid.Data(2:3, 2:3), temp.dense().Data);
-        end            
+        end
+        
+        function it_can_slice_grid_with_nonscalar_iterator_with_struct_iter(test)
+            grid = containers.Grid(1, {1:3, [[1;2;3], [4;5;6]]}, ["a", "b"]);
+            grid = grid(struct("a", {2, 3}, "b", {[1;2;3], [4;5;6]}));
+            test.verifyEqual(numel(grid.Data), 2);
+        end
     end
 end
