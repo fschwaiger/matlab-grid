@@ -60,80 +60,89 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
     % %#release include file ../../../LICENSE.md
 
-    properties (SetAccess = protected)
+    properties (SetAccess = private)
         % High-dimensional data container.
         Data = []
-
         % Cell array of iterator arrays.
-        Iter {mustBeCellOrStruct} = {}
-
+        Iter = {}
         % String array of iterator names.
-        Dims (1,:) string = strings(1, 0)
-
+        Dims = strings(1, 0)
         % User-defined properties.
         User = []
     end
 
     methods
-        function self = Grid(varargin)
-            if nargin > 0 && isa(varargin{1}, "containers.Grid")
-                % skip setup, copy constructor
-                self = varargin{1};
-                parser.Results.Distributed = "no";
-            else
-                % init with common interface
-                parser = inputParser();
-                parser.addOptional("Data", []);
-                parser.addOptional("Iter", {}, @mustBeCellOrStruct);
-                parser.addOptional("Dims", [], @(s) iscellstr(s) || isstring(s));
-                parser.addOptional("Distributed", [], @(s) islogical(s) || strcmpi(s, "distributed"));
-                parser.addOptional("User", []);
-                parser.StructExpand = (nargin == 1) && isstruct(varargin{1}) && isfield(varargin{1}, "Data");
-                parser.parse(varargin{:});
-
-                % if the user did not specify DIMS, will have ["x1", "x2", ...]
-                if isempty(parser.Results.Dims) && not(isempty(parser.Results.Iter))
-                    self.Dims = compose("x%d", transpose(1:numel(parser.Results.Iter)));
-                elseif isequal(parser.Results.Dims, [])
-                    self.Dims = compose("x%d", transpose(1:ndims(parser.Results.Data)));
-                else
-                    self.Dims = parser.Results.Dims;
-                end
-
-                % if the user did not specify ITER, will have {1:k1, 1:k2, ...}
-                if isempty(parser.Results.Iter) && not(isempty(self.Dims))
-                    self.Iter = arrayfun(@(k) 1:k, size(parser.Results.Data, 1:ndims(self)), "Uni", 0);
-                elseif isstruct(parser.Results.Iter)
-                    self.Iter = reshape(parser.Results.Iter, [], 1);
-                else
-                    self.Iter = parser.Results.Iter;
-                end
-
-                % zeros / repmat would produce square matrices with only one argument.
-                % Instead, we must force the mising trailing dimensions to be correct
-                if issparse(self)
-                    realGridSizes = [numel(self.Iter), 1];
-                else
-                    realGridSizes = repmat(numel(self.Iter), 1, 2);
-                    realGridSizes(1:numel(self.Iter)) = cellfun(@(it) size(it, 2), self.Iter);
-                end
-
-                if isempty(parser.Results.Data)
-                    % if the user specified data as [], it creates a zeros() matrix
-                    self.Data = reshape(parser.Results.Data, realGridSizes);
-                elseif isscalar(parser.Results.Data)
-                    % if the user specified a scalar, the value is repeated as a constant
-                    self.Data = repmat(parser.Results.Data, realGridSizes);
-                else
-                    % else repeats only required dimensions
-                    required = realGridSizes;
-                    provided = size(parser.Results.Data, 1:numel(required));
-                    self.Data = repmat(parser.Results.Data, required ./ provided);
-                end
-
-                % if the user did not specify custom meta data, will have []
-                self.User = parser.Results.User;
+        function self = Grid(data, iter, dims, user, options)
+            arguments
+                data = []
+                iter (:, :) {mustBeCellOrStruct} = {} %#ok<INUSA>
+                dims (1, :) string = strings(1, 0) %#ok<INUSA>
+                user = [] %#ok<INUSA>
+                options.Data = data
+                options.Iter (:, :) {mustBeCellOrStruct} = iter
+                options.Dims (1, :) string {mustBeVarname} = dims
+                options.User = user
             end
+            
+            % if the user specified a struct, it is a compact table of iterators and dimensions
+            if isstruct(data) && isscalar(data) && isequal(fieldnames(data), fieldnames(options))
+                options = data;
+            end
+            
+            % skip setup, copy constructor
+            if isa(data, class(self))
+                self = data;
+                return
+            end
+            
+            % the user specified a compact table of iterators and dimensions
+            if size(options.Iter, 1) > 1 && size(options.Iter, 2) == 2 && isempty(options.Dims)
+                options.Dims = options.Iter(:, 1)';
+                options.Iter = options.Iter(:, 2)';
+            end
+
+            % if the user did not specify DIMS, will have ["x1", "x2", ...]
+            if isempty(options.Dims) && not(isempty(options.Iter))
+                self.Dims = compose("x%d", transpose(1:numel(options.Iter)))';
+            elseif isempty(options.Dims)
+                self.Dims = compose("x%d", transpose(1:ndims(options.Data)))';
+            else
+                self.Dims = options.Dims;
+            end
+
+            % if the user did not specify ITER, will have {1:k1, 1:k2, ...}
+            if isempty(options.Iter) && not(isempty(self.Dims))
+                self.Iter = arrayfun(@(k) 1:k, size(options.Data, 1:ndims(self)), "Uni", 0);
+            elseif isstruct(options.Iter)
+                self.Iter = reshape(options.Iter, [], 1);
+            else
+                self.Iter = options.Iter;
+            end
+
+            % zeros / repmat would produce square matrices with only one argument.
+            % Instead, we must force the mising trailing dimensions to be correct
+            if issparse(self)
+                realGridSizes = [numel(self.Iter), 1];
+            else
+                realGridSizes = repmat(numel(self.Iter), 1, 2);
+                realGridSizes(1:numel(self.Iter)) = cellfun(@(it) size(it, 2), self.Iter);
+            end
+
+            if isempty(options.Data)
+                % if the user specified data as [], it creates a zeros() matrix
+                self.Data = reshape(options.Data, realGridSizes);
+            elseif isscalar(options.Data)
+                % if the user specified a scalar, the value is repeated as a constant
+                self.Data = repmat(options.Data, realGridSizes);
+            else
+                % else repeats only required dimensions
+                required = realGridSizes;
+                provided = size(options.Data, 1:numel(required));
+                self.Data = repmat(options.Data, required ./ provided);
+            end
+
+            % if the user did not specify custom meta data, will have []
+            self.User = options.User;
 
             % ITER, DIMS and DATA must be consistent in size
             assert((isempty(self.Data) && isempty(self.Iter)) || ...
@@ -154,11 +163,6 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                 warning("grid:ColumnIterator", "Some iterators are column vectors. " + ...
                     "You might want to transpose them to row vectors. You can silence " + ...
                     "this warning via 'warning('off', 'grid:ColumnIterator')'.");
-            end
-
-            % distribute data array
-            if strcmpi(parser.Results.Distributed, "distributed") || isequal(parser.Results.Distributed, true)
-                self = distributed(self);
             end
         end
 
@@ -424,7 +428,11 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 end
 
 function mustBeCellOrStruct(s)
-    assert(iscell(s) || isstruct(s), "grid:InvalidInput", "Property must be either cell or struct array.");
+    assert(iscell(s) || isstruct(s), "grid:InvalidInput", "Iter must be either cell or struct array.");
+end
+
+function mustBeVarname(s)
+    assert(all(arrayfun(@isvarname, s)), "grid:InvalidInput", "Dims must be valid variable names.");
 end
 
 %#release rename file ../Grid.m

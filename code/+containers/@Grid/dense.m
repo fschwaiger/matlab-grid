@@ -29,14 +29,12 @@ function self = dense(self, default)
     data = self.Data;
     iter = self.Iter;
     dims = transpose(string(fieldnames(iter)));
+    sz = size(self);
 
-    % create a new dense grid
-    self = containers.Grid( ...
-        "Data", default, ...
-        "Iter", arrayfun(@(name) createiter(iter.(name)), dims, 'Uniform', false), ...
-        "Dims", dims, ...
-        "Dist", isdistributed(self.Data) ...
-    );
+    % make the matrix full of missing entries
+    self.Data = repmat(default, [sz, 1, 1]);
+    self.Iter = arrayfun(@(name) createiter(iter.(name)), dims, 'Uniform', false);
+    self.Dims = dims;
 
     % assign the sparse entries
     self = subsasgn(self, substruct('{}', {iter}), data);
@@ -47,12 +45,12 @@ function self = dense(self, default)
         if ischar(varargin{1}) || isstring(varargin{1})
             iter = unique(string(varargin));
         else
-            iter = unique(cell2mat(varargin));
+            iter = unique([varargin{:}]', 'rows')';
         end
 
         % omit multiple NaN values (unique does not remove them)
-        mask = ismissing(iter);
-        iter(mask & (cumsum(mask) > 1)) = [];
+        mask = all(ismissing(iter), 1);
+        iter(:, mask & (cumsum(mask) > 1)) = [];
     end
 end
 

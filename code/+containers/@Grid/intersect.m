@@ -45,7 +45,7 @@ function self = intersect(self, with, joinFcn, reduceFcnSelf, reduceFcnWith)
     if isempty(dims)
         self.Data = self.Data([]);
         self.Iter = {};
-        self.Dims = [];
+        self.Dims = strings(1, 0);
         return
     end
 

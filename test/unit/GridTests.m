@@ -350,9 +350,6 @@ classdef GridTests < AbstractTestCase
             grid = containers.Grid(false(10, 10, 10, 10));
             test.verifyFalse(isdistributed(grid.Data));
 
-            grid = containers.Grid(false(10, 10, 10, 10), {}, {}, 'distributed');
-            test.verifyTrue(isdistributed(grid.Data));
-
             grid = distributed(containers.Grid(false(10, 10, 10, 10)));
             test.verifyTrue(isdistributed(grid.Data));
 
@@ -781,17 +778,6 @@ classdef GridTests < AbstractTestCase
 
         function it_can_specify_user_data_in_constructor(test)
             grid = containers.Grid(1, {1:3, 1:4}, ["a", "b"], "User", 42);
-            test.verifyEqual(grid.User, 42);
-        end
-        
-        function it_can_be_distributed_via_constructor(test)
-            grid = containers.Grid(1, {1:3, 1:4}, ["a", "b"], "distributed");
-            test.verifyTrue(isdistributed(grid.Data));
-        end
-
-        function it_can_be_both_distributed_and_have_user_data(test)
-            grid = containers.Grid(1, {1:3, 1:4}, ["a", "b"], "distributed", "User", 42);
-            test.verifyTrue(isdistributed(grid.Data));
             test.verifyEqual(grid.User, 42);
         end
 
