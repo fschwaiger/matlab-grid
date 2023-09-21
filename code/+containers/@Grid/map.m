@@ -12,14 +12,7 @@ function varargout = map(self, varargin)
     other = cellfun(@(v) isa(v, class(self)), varargin);
     grids = [{self}, varargin(other)];
     varargin = varargin(not(other));
-    
-    % assign functions
     mapFcn = varargin{1};
-    if numel(varargin) > 1
-        errorFcn = varargin{2};
-    else
-        errorFcn = @silentRethrow;
-    end
 
     % can only operate on compatible grids
     assert(iscompatible(grids{:}), "grid:InvalidInput", ...
@@ -33,7 +26,6 @@ function varargout = map(self, varargin)
     nDims = numel(dims);
     iter = self.Iter;
     sz = size(self);
-    clear self
 
     % init output containers
     for k = 1:numel(grids)
@@ -42,44 +34,33 @@ function varargout = map(self, varargin)
 
     if nargin(mapFcn) < numel(grids)
         % with matrices, we can use arrayfun to cover all data points
-        [varargout{1:nargout}] = arrayfun(@mapVec, grids{:}, 'Error', @mapVecError);
+        [varargout{1:nargout}] = arrayfun(@mapAsVector, grids{:});
     elseif nargin(mapFcn) == numel(grids)
         % with matrices, we can use arrayfun to cover all data points
-        [varargout{1:nargout}] = arrayfun(mapFcn, grids{:}, 'Error', errorFcn);
+        [varargout{1:nargout}] = arrayfun(mapFcn, grids{:});
     elseif isstruct(iter)
         % iterator is already in struct array format
-        [varargout{1:nargout}] = arrayfun(mapFcn, grids{:}, iter, 'Error', errorFcn);
+        [varargout{1:nargout}] = arrayfun(mapFcn, grids{:}, iter);
     else
         % iterator will be computed from linear indices
-        [varargout{1:nargout}] = arrayfun(@mapIt, reshape(1:prod(sz), sz), grids{:}, 'Error', @mapItError);
+        [varargout{1:nargout}] = arrayfun(@mapWithIter, reshape(1:prod(sz), sz), grids{:});
     end
 
     % reassign outputs to grids
     for k = 1:nargout
-        varargout{k} = makegrid(varargout{k}, iter, dims);
+        self.Data = varargout{k};
+        varargout{k} = self;
     end
 
     % only local function below
     return
 
-    function varargout = mapIt(k, varargin)
+    function varargout = mapWithIter(k, varargin)
         [varargout{1:nargout}] = mapFcn(varargin{:}, iterator(k));
     end
 
-    function varargout = mapItError(e, k, varargin)
-        [varargout{1:nargout}] = errorFcn(e, varargin{:}, iterator(k));
-    end
-
-    function varargout = mapVec(varargin)
+    function varargout = mapAsVector(varargin)
         [varargout{1:nargout}] = mapFcn([varargin{:}]);
-    end
-    
-    function varargout = mapVecError(e, varargin)
-        [varargout{1:nargout}] = errorFcn(e, [varargin{:}]);
-    end
-
-    function unused = silentRethrow(e, varargin) %#ok<STOUT>
-        rethrow(e);
     end
 
     function it = iterator(k)

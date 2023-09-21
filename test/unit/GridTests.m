@@ -302,32 +302,6 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid.Dims, ["a", "b"]);
         end
 
-        function it_can_map_values_with_error(test)
-            grid = containers.Grid(ones(10, 10));
-
-            a = map(grid, grid, @myfunc1, @(e, vv) sum(vv));
-            test.verifyTrue(all(a.Data == 2, 'all'));
-
-            b = map(grid, grid, @myfunc2, @(e, v1, v2) v1 + v2);
-            test.verifyTrue(all(b.Data == 2, 'all'));
-
-            c = map(grid, grid, @myfunc3, @(e, v1, v2, it) v1 + v2);
-            test.verifyTrue(all(c.Data == 2, 'all'));
-
-            d = map(sparse(grid), sparse(grid), @myfunc3, @(e, v1, v2, it) v1 + v2);
-            test.verifyTrue(all(d.Data == 2, 'all'));
-
-            function y = myfunc1(x) %#ok
-                error("it:fails", "test");
-            end
-            function y = myfunc2(x1, x2) %#ok
-                error("it:fails", "test");
-            end
-            function y = myfunc3(x1, x2, it) %#ok
-                error("it:fails", "test");
-            end
-        end
-
         function it_can_partition_into_n_grids(test)
             grid = containers.Grid(rand(8, 12));
             [a, b, c] = grid.partition();
@@ -853,7 +827,7 @@ classdef GridTests < AbstractTestCase
 
         function it_can_draw_k_random_samples(test)
             grid = containers.Grid(1, {1:3, 1:4, [[1;2;3], [4;5;6]]}, ["a", "b", "c"]);
-            data = grid.sample(2);
+            data = grid.sample(2).sparse();
             test.verifyEqual(size(data.Data), [2, 1]);
             test.verifyInstanceOf(data.Data, 'double');
         end
@@ -875,19 +849,6 @@ classdef GridTests < AbstractTestCase
             grid = containers.Grid(1, {1:3, [[1;2;3], [4;5;6]]}, ["a", "b"]);
             grid = grid(struct("a", {2, 3}, "b", {[1;2;3], [4;5;6]}));
             test.verifyEqual(numel(grid.Data), 2);
-        end
-
-        function it_rethrows_map_error_properly(test)
-            grid = containers.Grid(1, {1:3, 1:4, [[1;2;3], [4;5;6]]}, ["a", "b", "c"]);
-            test.verifyError(@map, "grid:MapError");
-
-            function map()
-                grid = grid.map(@map_with_error);
-            end
-
-            function r = map_with_error(test)
-                error("grid:MapError", "This is a test error");
-            end
         end
 
         function it_can_get_size_at_dimension(test)
