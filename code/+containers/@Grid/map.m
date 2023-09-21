@@ -52,7 +52,7 @@ function varargout = map(self, varargin)
         varargout{k} = self;
     end
 
-    % only local function below
+    % only local functions below
     return
 
     function varargout = mapWithIter(k, varargin)
@@ -66,8 +66,9 @@ function varargout = map(self, varargin)
     function it = iterator(k)
         subs = cell(1, nDims);
         [subs{:}] = ind2sub(sz, k);
-        it = cellfun(@(it, kk) it(:, kk), iter, subs, 'Uniform', false);
-        it = cell2struct(it, dims, 2);
+        for iDim = 1:nDims
+            it.(dims(iDim)) = iter{iDim}(:, subs{iDim});
+        end
     end
 end
 
