@@ -97,7 +97,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
             
             % the user specified a compact table of iterators and dimensions
             if size(options.Iter, 1) > 1 && size(options.Iter, 2) == 2 && isempty(options.Dims)
-                options.Dims = options.Iter(:, 1)';
+                options.Dims = string(options.Iter(:, 1)');
                 options.Iter = options.Iter(:, 2)';
             end
 
