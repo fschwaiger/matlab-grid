@@ -1,5 +1,11 @@
 function n = numArgumentsFromSubscript(self, s, indexingContext)
     % Returns 1, to make brace {} indexing work
+    
+    if s(1).type == "{}" && numel(s) > 1 && s(2).type == "."
+        args = subs2args(self, s(1).subs);
+        n = numel(self.Data(args{:}));
+        return
+    end
 
     % slicing the grid never changes the dimensionality of the output
     if any(s(1).type(1) == '({')

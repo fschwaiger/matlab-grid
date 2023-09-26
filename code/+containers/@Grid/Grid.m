@@ -8,9 +8,46 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]})
     %   grid = containers.Grid(rand(3, 3, 3))
     %
+    % Grids can be sliced in several ways using () or {} indexing. The ()
+    % indexing operator returns a new grid, while the {} indexing operator
+    % returns the data at the given indices. This behavior is similar to
+    % the built-in cell arrays, or the table class. Inside () or {}, the same
+    % arguments can be used:
+    %
+    %   % returns a rectangular grid, matching values from all iterators
+    %   grid = grid(iter1, iter2, ...)
+    %   
+    %   % returns grid at numerical indices (try to use value matching instead)
+    %   grid = grid.slice(iDim1, iDim2, ...)
+    %
+    %   % matches only values from selected iterators, keeps others ':' (all)
+    %   grid = grid("Dim1", iter1, "Dim2", iter2, ...)
+    %
+    %   % returns a sparse grid at all points where data property matches value
+    %   % (notice the leading dot, which is required to distinguish from iterators)
+    %   grid = grid(".DataProp1", value1, ...)
+    %
+    %   % returns a sparse grid at all given iterator combinations
+    %   grid = grid(iterStructs)
+    %
+    %   % returns a sparse grid at all marked locations
+    %   grid = grid(logicalMask)
+    %
+    %   % returns a sparse grid at all locations where function evaluates true
+    %   grid = grid(@matchingFcn)
+    %
+    %   % data at one linear index
+    %   [data, iter] = grid.at(iLinear)
+    %
+    % Some examples for slicing operations:
+    %
+    %   forwardWithoutFlaps = grid(0:50:100, "up")
+    %   dataAtFlapsUp = grid{"flaps", "up"}
+    %   [grid{".Success", -1}.Success] = deal(0);
+    %
     % Grid properties:
     %   Data  -  High-dimensional data container.
-    %   Iter  -  Cell array of iterator arrays.
+    %   Iter  -  Cell array of iterator arrays (dense) or struct array (sparse).
     %   Dims  -  String array of iterator names.
     %   User  -  User-defined properties.
     %
@@ -421,7 +458,11 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     end
 
     methods (Access = private)
+        %#release include file private/fields2indices.m
+        
         %#release include file private/struct2mask.m
+        
+        %#release include file private/subs2args.m
         
         %#release include file private/values2indices.m
     end

@@ -679,7 +679,7 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid{1, 1,  "down"}, 7);
             test.verifyEqual(sum(grid.Data, 'all'), 49);
 
-            grid(1, 1, "down").Data = makegrid(7, {1, 1, "down"}, ["a", "b", "flaps"]).Data;
+            grid{1, 1, "down"} = makegrid(7, {1, 1, "down"}, ["a", "b", "flaps"]).Data;
             test.verifyEqual(grid{1, 1,  "down"}, 7);
             test.verifyEqual(sum(grid.Data, 'all'), 49);
         end
@@ -842,6 +842,12 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(size(grid, 1), 3);
             test.verifyEqual(size(grid, 2), 4);
             test.verifyEqual(size(grid, 3), 2);
+        end
+        
+        function it_can_assign_multiple_values(test)
+            grid = containers.Grid(struct('Success', 0), {1:3, 1:4}, ["a", "b"]);
+            [grid{"b", 2:3}.Success] = deal(1);
+            test.verifyEqual([grid.Data.Success], [0 0 0 1 1 1 1 1 1 0 0 0]);
         end
     end
 end
