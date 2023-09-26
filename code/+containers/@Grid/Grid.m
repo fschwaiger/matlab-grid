@@ -16,25 +16,32 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %
     %   % returns a rectangular grid, matching values from all iterators
     %   grid = grid(iter1, iter2, ...)
+    %   data = grid{iter1, iter2, ...}
     %   
     %   % returns grid at numerical indices (try to use value matching instead)
     %   grid = grid.slice(iDim1, iDim2, ...)
+    %   data = grid.Data(iDim1, iDim2, ...)
     %
     %   % matches only values from selected iterators, keeps others ':' (all)
     %   grid = grid("Dim1", iter1, "Dim2", iter2, ...)
+    %   data = grid{"Dim1", iter1, "Dim2", iter2, ...}
     %
     %   % returns a sparse grid at all points where data property matches value
     %   % (notice the leading dot, which is required to distinguish from iterators)
     %   grid = grid(".DataProp1", value1, ...)
+    %   data = grid{".DataProp1", value1, ...}
     %
     %   % returns a sparse grid at all given iterator combinations
     %   grid = grid(iterStructs)
+    %   data = grid{iterStructs}
     %
     %   % returns a sparse grid at all marked locations
     %   grid = grid(logicalMask)
+    %   data = grid{logicalMask}
     %
     %   % returns a sparse grid at all locations where function evaluates true
     %   grid = grid(@matchingFcn)
+    %   data = grid{@matchingFcn}
     %
     %   % data at one linear index
     %   [data, iter] = grid.at(iLinear)
