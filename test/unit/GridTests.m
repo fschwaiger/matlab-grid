@@ -849,5 +849,11 @@ classdef GridTests < AbstractTestCase
             [grid{"b", 2:3}.Success] = deal(1);
             test.verifyEqual([grid.Data.Success], [0 0 0 1 1 1 1 1 1 0 0 0]);
         end
+        
+        function it_can_select_first_iter_value(test)
+            grid = containers.Grid(1, {1:3, 1:4}, ["a", "b"]);
+            test.verifyEqual(grid.Iter{"b"}(1), 1);
+            test.verifyEqual(grid.Iter{"b"}(end), 4);
+        end
     end
 end
