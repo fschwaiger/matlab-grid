@@ -43,7 +43,7 @@ function varargout = map(self, varargin)
         [varargout{1:nargout}] = arrayfun(mapFcn, grids{:}, iter);
     else
         % iterator will be computed from linear indices
-        [varargout{1:nargout}] = arrayfun(@mapWithIter, reshape(1:prod(sz), sz), grids{:});
+        [varargout{1:nargout}] = arrayfun(@mapWithIter, reshape(1:prod(sz), [sz, 1, 1]), grids{:});
     end
 
     % reassign outputs to grids
