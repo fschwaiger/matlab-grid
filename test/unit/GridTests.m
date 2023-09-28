@@ -356,7 +356,7 @@ classdef GridTests < AbstractTestCase
             grid = gather(grid);
             test.verifyFalse(isdistributed(grid.Data));
             
-            sz = [2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2];
+            sz = [2, 2, 1, 2, 1];
             grid1 = containers.Grid(rand(sz));
             grid2 = containers.Grid(rand(sz));
             parallelResult = map(distributed(grid1), distributed(grid2), @(a, b, k) a + b + k.x1).gather();
@@ -603,6 +603,11 @@ classdef GridTests < AbstractTestCase
         function it_can_pluck_struct_fields(test)
             grid = makegrid(struct('a', {1, 2, 3}, 'b', {4, 5, 6}));
             test.verifyEqual(grid.pluck('b').Data, [4, 5, 6]);
+        end
+
+        function it_can_pluck_deep_struct_fields(test)
+            grid = makegrid(struct('a', num2cell(struct('c', {1, 2, 3})), 'b', {4, 5, 6}));
+            test.verifyEqual(grid.pluck('a.c').Data, [1, 2, 3]);
         end
 
         function it_can_pluck_struct_fields_with_cell(test)
