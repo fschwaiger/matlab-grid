@@ -11,12 +11,11 @@ function self = pluck(self, keys)
     end
 
     for key = strsplit(keys, ".")
-        try
-            % try as typed array
-            self.Data = reshape([self.Data.(key{1})], size(self.Data));
-        catch
-            % fall back to cell array
-            self.Data = reshape({self.Data.(key{1})}, size(self.Data));
+        data = reshape({self.Data.(key)}, size(self.Data));
+        if all(cellfun(@isscalar, data), 'all')
+            self.Data = reshape([data{:}], size(self.Data));
+        else
+            self.Data = data;
         end
     end
 end
