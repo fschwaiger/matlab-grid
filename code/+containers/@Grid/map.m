@@ -31,6 +31,12 @@ function varargout = map(self, varargin)
     for k = 1:numel(grids)
         grids{k} = grids{k}.Data;
     end
+    
+    % if we run the arrayfun below in a distributed environment, then MATLAB will
+    % broadcast the current grid to all workers because of the closures below.
+    % We can avoid serializing and broadcasting the entire grid data by unsetting
+    % the Data property. We will replace it with the correct data later.
+    self.Data = [];
 
     if nargin(mapFcn) < numel(grids)
         % with matrices, we can use arrayfun to cover all data points

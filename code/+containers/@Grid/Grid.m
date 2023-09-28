@@ -128,9 +128,15 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                 options.User = user
             end
             
-            % if the user specified a struct, it is a compact table of iterators and dimensions
+            % This variant is called when the grid is loaded from a MAT file
+            % or deserialized on its way to a parallel pool worker. We do not
+            % want to run the constructor again, but just copy the data.
             if isstruct(data) && isscalar(data) && isequal(fieldnames(data), fieldnames(options))
-                options = data;
+                self.Data = data.Data;
+                self.Iter = data.Iter;
+                self.Dims = data.Dims;
+                self.User = data.User;
+                return
             end
             
             % skip setup, copy constructor
