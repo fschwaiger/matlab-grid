@@ -985,11 +985,11 @@ classdef GridTests < AbstractTestCase
         function it_display_data_bytes_size_in_human_readable_format(test)
             grid = makegrid(zeros(1, 1e1)); %#ok<NASGU>
             test.verifySubstring(evalc('grid'), "580 bytes");
-            grid = makegrid(zeros(1, 1e2)); %#ok<NASGU>
-            test.verifySubstring(evalc('grid'), "3 kB");
-            grid = makegrid(zeros(1, 1e5)); %#ok<NASGU>
+            grid = makegrid(zeros(10, 10)); %#ok<NASGU>
+            test.verifySubstring(evalc('grid'), "2 kB");
+            grid = makegrid(zeros(10, 10, 10, 10, 10, 2)); %#ok<NASGU>
             test.verifySubstring(evalc('grid'), "2 MB");
-            grid = makegrid(zeros(1, 1e8)); %#ok<NASGU>
+            grid = makegrid(zeros(10, 10, 10, 10, 10, 10, 10, 10, 2)); %#ok<NASGU>
             test.verifySubstring(evalc('grid'), "2 GB");
         end
         
