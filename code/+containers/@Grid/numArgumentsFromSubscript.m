@@ -12,29 +12,13 @@ function n = numArgumentsFromSubscript(self, s, indexingContext)
     if any(s(1).type(1) == '({')
         s = s(2:end);
     end
-
-    % cannot execute logic down below
-    if isempty(s)
+    
+    if isempty(s) || s(1).type == "." && ismember(s(1).subs, self.Dims)
+        % if it is custom access, we do not output vararg
         n = 1;
-        
-    % slicing the grid never changes the dimensionality of the output
-    elseif isequal(s(1), substruct('.', 'Iter')) ...
-            && numel(s) > 1 ...
-            && s(2).type == "()"
-        n = 1;
-
-    % slicing iter by name cannot be handled by builtin code
-    elseif isequal(s(1), substruct('.', 'Iter')) ...
-            && numel(s) > 1 ...
-            && s(2).type == "{}" ...
-            && iscellstr(s(2).subs) ...
-            && not(ismember(':', s(2).subs))
-        n = numel(s(2).subs);
-        
-    % everything else is normal
     else
+        % everything else is normal
         n = builtin('numArgumentsFromSubscript', self, s, indexingContext);
-        
     end
 end
 

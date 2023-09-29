@@ -23,15 +23,14 @@ function self = applyTo(self, testCase, options)
         "Can only apply test grid iterations if the grid contains " + ...
         "true/false values to select iteration points.");
 
+    if options.FilterDisabled
+        self = self.where(true);
+    end
+        
     % iterate over all value / key pairs
     self.each(@makeAndAddIteration);
 
     function makeAndAddIteration(enabled, values)
-        % do not process this iteration, the user wanted less noise
-        if options.FilterDisabled && not(enabled)
-            return
-        end
-
         % this is the data type we need to add to the test case
         iter = sltestiteration();
 

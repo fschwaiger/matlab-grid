@@ -57,10 +57,18 @@ function varargout = partition(self, N)
         [mySize, largest] = sort(mySize);
         factors = factor(N);
 
-        % there might be more factors than dimensions, collapse until same
+        % if we have more factors than dimensions, aggregate them so that only combinations from mySize remain
         while numel(factors) > numel(mySize)
-            factors(1) = factors(1) * factors(end);
-            factors(end) = [];
+            for a = 1:numel(factors)
+                for b = a+1:numel(factors)
+                    if any(mod(mySize, factors(a) * factors(b)) == 0)
+                        factors(a) = factors(a) * factors(b);
+                        factors(b) = 1;
+                    end
+                end
+            end
+            factors(factors == 1) = [];
+            factors = sort(factors);
         end
 
         % now we want to repeatedly split the largest dimension by the largest factor

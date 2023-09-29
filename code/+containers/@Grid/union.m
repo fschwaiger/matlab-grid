@@ -27,18 +27,6 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
         missingWith = missingSelf;
     end
 
-    if nargin < 3
-        joinFcn = @join;
-    end
-
-    % join with an array of grids
-    if iscell(with)
-        for grid = reshape(with, 1, [])
-            self = union(self, grid{1}, joinFcn, missingSelf, missingWith);
-        end
-        return
-    end
-
     % no need to continue, outer join with empty set is identity
     if isempty(self.Dims)
         self = with;

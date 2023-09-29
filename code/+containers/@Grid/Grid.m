@@ -154,7 +154,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
             % if the user did not specify DIMS, will have ["x1", "x2", ...]
             if isempty(options.Dims) && not(isempty(options.Iter))
                 self.Dims = compose("x%d", transpose(1:numel(options.Iter)))';
-            elseif isempty(options.Dims)
+            elseif isempty(options.Dims) && not(isempty(options.Data))
                 self.Dims = compose("x%d", transpose(1:ndims(options.Data)))';
             else
                 self.Dims = options.Dims;
@@ -203,8 +203,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                 "grid:InvalidInput", "Not all iterators have a name, or too many names given.");
             assert(not(any(ismissing(self.Dims))), ...
                 "grid:InvalidInput", "Some iterator names are missing strings.");
-            assert(issparse(self) || all(cellfun(@(it) isstruct(it) || ...
-                ((iscell(it) || isstring(it)) && numel(unique(it)) == numel(it) && sum(ismissing(it)) < 2) || ...
+            assert(issparse(self) || all(cellfun(@(it) isstruct(it) || ((iscell(it) || isstring(it)) && numel(unique(it)) == numel(it) && sum(ismissing(it)) < 2) || ...
                 (ismatrix(it) && size(unique(it', 'rows'), 1) == size(it, 2) && sum(all(ismissing(it), 1), 2) < 2), self.Iter)), ...
                 "grid:InvalidInput", "Some iterators have non-unique values.");
 

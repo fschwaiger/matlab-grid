@@ -1,7 +1,6 @@
 function self = intersect(self, with, joinFcn, reduceFcnSelf, reduceFcnWith)
     % Inner joins two grids, the result is the common subspace.
     %
-    %   c = intersect(a, b)
     %   c = intersect(a, b, @(va, vb, iter) myJoinFcn(va, vb, iter))
     %   c = intersect(a, b, @myJoin)
     %   c = intersect(a, b, @myJoin, @myReduce)
@@ -16,23 +15,12 @@ function self = intersect(self, with, joinFcn, reduceFcnSelf, reduceFcnWith)
     %
     % See also containers.Grid/union, containers.Grid/join
 
-    if nargin < 3
-        joinFcn = @join;
-    end
-
     if nargin < 4
-        reduceFcnSelf = @join;
+        reduceFcnSelf = joinFcn;
     end
 
     if nargin < 5
         reduceFcnWith = reduceFcnSelf;
-    end
-    % join with an array of grids
-    if iscell(with)
-        for grid = reshape(with, 1, [])
-            self = intersect(self, grid{1}, joinFcn, reduceFcnSelf, reduceFcnWith);
-        end
-        return
     end
 
     % prevent downstream errors while not implemented

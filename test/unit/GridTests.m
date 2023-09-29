@@ -18,19 +18,6 @@ classdef GridTests < AbstractTestCase
             test.verifyNotEqual(actual, expect);
         end
 
-        function it_can_store_file_with_savegrid(test)
-            temp = test.applyFixture(matlab.unittest.fixtures.TemporaryFolderFixture());
-            file = temp.Folder + "/grid.mat";
-            expect = containers.Grid(rand(3), {1:3, 2:4}, ["a", "b"]);
-
-            savegrid(file, expect);
-            actual = loadgrid(file);
-            stored = load(file);
-
-            test.verifyEqual(actual, expect);
-            test.verifyEqual(stored, struct(expect));
-        end
-
         function it_can_store_file_with_save(test)
             temp = test.applyFixture(matlab.unittest.fixtures.TemporaryFolderFixture());
             file = temp.Folder + "/grid.mat";
@@ -55,29 +42,11 @@ classdef GridTests < AbstractTestCase
             test.verifyError(@() repmat(grid, 2, 2), "grid:GridConcat");
         end
 
-        function it_has_savegrid_that_can_be_chained(test)
-            temp = test.applyFixture(matlab.unittest.fixtures.TemporaryFolderFixture());
-            file = temp.Folder + "/grid.mat";
-
-            expect = containers.Grid(rand(3), {1:3, 2:4}, ["a", "b"]);
-            actual = savegrid(file, expect);
-
-            test.verifyEqual(actual, expect);
-        end
-
         function it_has_save_that_can_be_chained(test)
             temp = test.applyFixture(matlab.unittest.fixtures.TemporaryFolderFixture());
             file = temp.Folder + "/grid.mat";
             grid = containers.Grid(rand(3), {1:3, 2:4}, ["a", "b"]);
             test.verifyEqual(grid.save(file), grid);
-        end
-
-        function it_has_makegrid_as_alias_for_grid(test)
-            data = rand(3);
-            expect = containers.Grid(data, {1:3, 2:4}, ["a", "b"]);
-            actual = makegrid(data, {1:3, 2:4}, ["a", "b"]);
-
-            test.verifyEqual(actual, expect);
         end
 
         function it_collects_into_1d_grid(test)
@@ -161,22 +130,35 @@ classdef GridTests < AbstractTestCase
         function it_can_subsref_iterators(test)
             grid = containers.Grid(rand(2, 2), {1:2, 3:4});
 
-            test.verifyEqual(grid.Iter{"x2"}, 3:4);
-            test.verifyEqual(grid.Iter("x2"), {3:4});
-            test.verifyEqual(grid.Iter("x2", "x1"), {3:4, 1:2});
+            test.verifyEqual(grid.x2, 3:4);
+            test.verifyEqual(grid.x1, 1:2);
 
-            [a, b] = grid.Iter{"x2", "x1"};
+            [a, b] = grid.Iter{[2, 1]};
             test.verifyEqual(a, 3:4);
             test.verifyEqual(b, 1:2);
+        end
+
+        function it_can_subsref_iterators_if_sparse(test)
+            grid = containers.Grid(rand(2, 2), {1:2, 3:4}).sparse();
+
+            test.verifyEqual(grid.x1, [1,2,1,2]);
+            test.verifyEqual(grid.x2, [3,3,4,4]);
+        end
+
+        function it_can_subsasgn_iterators_if_sparse(test)
+            grid = containers.Grid(rand(2, 2), {1:2, 3:4}).sparse();
+            
+            grid.x1 = 1:4;
+            test.verifyEqual(grid.x1, 1:4);
         end
 
         function it_can_subsasgn_iterators(test)
             grid = containers.Grid(rand(2, 2), {1:2, 3:4});
 
-            grid.Iter("x2") = {5:6};
+            grid.x2 = 5:6;
             test.verifyEqual(grid.Iter{2}, 5:6);
 
-            grid.Iter{"x2"} = 7:8;
+            grid.x2 = 7:8;
             test.verifyEqual(grid.Iter{2}, 7:8);
         end
 
@@ -235,6 +217,18 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(size(grid), 30);
         end
 
+        function it_can_reduce_a_dimension_by_logical_id(test)
+            grid = containers.Grid(rand(30));
+            grid = grid.collapse(grid.Dims == "x2", @mean);
+            test.verifyEqual(size(grid), 30);
+        end
+
+        function it_can_retain_a_dimension_by_logical_id(test)
+            grid = containers.Grid(rand(30));
+            grid = grid.retain(grid.Dims == "x2", @mean);
+            test.verifyEqual(size(grid), 30);
+        end
+
         function it_can_reduce_a_dimension_changing_type(test)
             grid = containers.Grid(rand([30, 1, 30]));
             grid = grid.collapse(1, @(x) {x});
@@ -276,6 +270,13 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid.Dims, ["x4", "x2", "x3"]);
         end
 
+        function it_retains_input_dim_order_as_well_when_sparse(test)
+            grid = containers.Grid(rand(8, 1, 5)).sparse();
+            grid = grid.retain(["x2", "x1"], @(x) mean(x, 'all'));
+            test.verifyEqual(size(grid), [1, 8]);
+            test.verifyEqual(grid.Dims, ["x2", "x1"]);
+        end
+
         function it_can_permute(test)
             grid = containers.Grid(rand(8, 9, 10, 11));
             grid = grid.permute(["x4", "x2", "x1", "x3"]);
@@ -290,6 +291,13 @@ classdef GridTests < AbstractTestCase
             grid = grid.map(@(v, k) sum(cell2mat(struct2cell(k))));
             test.verifyEqual(grid.Data(1), 4);
             test.verifyEqual(grid.Data(end), 40);
+            test.verifyEqual(grid.Dims, ["x1", "x2", "x3", "x4"]);
+        end
+
+        function it_can_vector_map_values(test)
+            grid = containers.Grid(rand(10, 10, 10, 10));
+            grid = grid.vec(@(v) v + 1);
+            test.verifyTrue(all(grid.Data >= 1.0, "all"));
             test.verifyEqual(grid.Dims, ["x1", "x2", "x3", "x4"]);
         end
 
@@ -309,6 +317,15 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(numel(a.Data) + numel(b.Data) + numel(c.Data), numel(grid.Data));
             test.verifyEqual(c.Dims, grid.Dims);
             test.verifyNotEqual(c.Iter, grid.Iter);
+        end
+
+        function it_can_partition_into_n_grids_with_less_dims(test)
+            grid = containers.Grid(rand(4, 3));
+            a = cell(1, 12);
+            [a{:}] = grid.partition(12);
+            for k = 1:12
+                test.verifyTrue(isscalar(a{k}.Data));
+            end
         end
 
         function it_can_partition_by_function(test)
@@ -509,6 +526,12 @@ classdef GridTests < AbstractTestCase
             test.verifyTrue(isempty(c.Data));
         end
 
+        function it_fail_to_intersect_two_sparse_grids(test)
+            a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]).sparse();
+            b = containers.Grid(2, {1:3, 1:3, 1:3}, ["f", "e", "d"]).sparse();
+            test.verifyError(@() intersect(a, b, @plus), "grid:InvalidUse");
+        end
+
         function it_joins_outer_with_overlap(test)
             a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]);
             b = containers.Grid(2, {2:3, 3:3, 1:3}, ["a", "b", "c"]);
@@ -552,17 +575,62 @@ classdef GridTests < AbstractTestCase
             a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]);
             b = containers.Grid(2, {2:3, 3:3, 1:5}, ["a", "b", "c"]);
             c = union(a, b, @plus);
+            d = union(b, a, @plus);
+
             test.verifyEqual(c.Iter, {1:3, 1:3, 1:5});
             test.verifyEqual(c.Dims, a.Dims);
             test.verifyEqual(c.Data(2:3, 3:3, 1:3), 3.0 * ones(2, 1, 3));
             test.verifyEqual(c.Data(1:1,  : ,  : ), nan * ones(1, 3, 5));
             test.verifyEqual(c.Data( : , 1:2,  : ), nan * ones(3, 2, 5));
             test.verifyEqual(c.Data( : ,  : , 4:5), nan * ones(3, 3, 2));
+
+            % the order of the iterators will be determined by the 1st argument
+            test.verifyNotEqual(d, c);
+            test.verifyEqual(d.sort(), c.sort());
+        end
+
+        function it_joins_empty_grid_with_good_grid(test)
+            a = makegrid();
+            b = makegrid(2, {1:3}, "b");
+            c = union(a, b, @plus);
+            test.verifyEqual(c, b);
+            c = union(b, a, @plus);
+            test.verifyEqual(c, b);
+        end
+
+        function it_converts_iter_to_string_if_union_iter_is_already_string(test)
+            a = containers.Grid(1, {1:3, [1:3,nan]}, ["a", "b"]);
+            b = containers.Grid(2, {1:3, ["a","b","c",string(missing)]}, ["a", "b"]);
+            c = union(a, b, @plus);
+            test.verifyEqual(c.Dims, ["a", "b"]);
+            test.verifyEqual(c.Iter, {1:3, ["1","2","3",string(missing),"a","b","c"]});
+        end
+
+        function it_avoids_bug_if_only_one_nan_is_in_2nd_grid(test)
+            a = containers.Grid(1, {1:3, [1:3,nan]}, ["a", "b"]);
+            b = containers.Grid(2, {1:3, nan}, ["a", "b"]);
+            c = union(a, b, @plus);
+            test.verifyEqual(c.Dims, ["a", "b"]);
+            test.verifyEqual(c.Iter, {1:3, [1:3,nan]});
+        end
+
+        function it_fails_to_union_two_sparse_grids(test)
+            a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]).sparse();
+            b = containers.Grid(2, {1:3, 1:3, 1:3}, ["f", "e", "d"]).sparse();
+            test.verifyError(@() union(a, b, @plus), "grid:InvalidUse");
         end
 
         function it_can_be_extended(test)
             a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]);
             b = extend(a, "f", 1:3, "e", 1:3, "d", 1:3);
+            test.verifyEqual(b.Data, ones(3, 3, 3, 3, 3, 3));
+            test.verifyEqual(b.Iter, repmat({1:3}, 1, 6));
+            test.verifyEqual(b.Dims, ["a", "b", "c", "f", "e", "d"]);
+        end
+
+        function it_can_be_extended_in_sparse_mode_to_produce_same_dense_grid(test)
+            a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]).sparse();
+            b = extend(a, "f", 1:3, "e", 1:3, "d", 1:3).dense();
             test.verifyEqual(b.Data, ones(3, 3, 3, 3, 3, 3));
             test.verifyEqual(b.Iter, repmat({1:3}, 1, 6));
             test.verifyEqual(b.Dims, ["a", "b", "c", "f", "e", "d"]);
@@ -588,11 +656,6 @@ classdef GridTests < AbstractTestCase
             test.verifyTrue(iscolumn(b.Data));
             test.verifyFalse(isempty(b.Data));
             test.verifyEqual(b.Data, a.Data(a.Data > 0.5));
-        end
-
-        function it_can_use_makegrid(test)
-            grid = makegrid(rand(5, 5, 5));
-            test.verifyInstanceOf(grid, 'containers.Grid');
         end
 
         function it_can_remove_struct_fields(test)
@@ -637,11 +700,26 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid{iter2}, data);
         end
 
+        function it_can_find_slice_where_value(test)
+            grid = makegrid(43, {1:3, 1:3});
+            grid{1, :} = 42;
+            grid = grid.where(42);
+            test.verifyEqual(grid.Data, repmat(42, 1, 3));
+            test.verifyEqual(grid.Dims, ["x1", "x2"]);
+            test.verifyEqual(grid.Iter, {1:1, 1:3});
+        end
+
         function it_can_sort_dimensions_and_iterators(test)
             actual = makegrid([1,2,3;4,5,6;7,8,9], {-1:+1:+1, +1:-1:-1}, ["b", "a"]);
             expect = makegrid([3,6,9;2,5,8;1,4,7], {-1:+1:+1, -1:+1:+1}, ["a", "b"]);
             actual = actual.sort();
             test.verifyEqual(actual.Data, expect.Data);
+        end
+
+        function it_can_sort_dimensions_in_sparse_mode(test)
+            actual = makegrid([1,2,3;4,5,6;7,8,9], {-1:+1:+1, +1:-1:-1}, ["b", "a"]).sparse();
+            actual = actual.sort();
+            test.verifyEqual(actual.Dims, ["a", "b"]);
         end
 
         function it_can_iterate_with_each(test)
@@ -761,7 +839,7 @@ classdef GridTests < AbstractTestCase
         function it_can_be_applied_to_simulink_test_case(test)
             folder = currentProject().RootFolder + "/test/data/iter";
             test.applyFixture(matlab.unittest.fixtures.CurrentFolderFixture(folder));
-            test.verifySize(testsuite('test.mldatx'), [1, 15]);
+            test.verifySize(testsuite('test.mldatx'), [1, 30]);
         end
 
         function it_can_create_a_mixed_sparse_dense_grid(test)
@@ -823,6 +901,13 @@ classdef GridTests < AbstractTestCase
             test.verifyInstanceOf(data.Data, 'double');
         end
 
+        function it_can_draw_a_fraction_of_random_samples(test)
+            grid = containers.Grid(1, {1:3, 1:4, [[1;2;3], [4;5;6]]}, ["a", "b", "c"]);
+            data = grid.sample(0.5).sparse();
+            test.verifyEqual(size(data.Data), [12, 1]);
+            test.verifyInstanceOf(data.Data, 'double');
+        end
+
         function it_can_compute_size_with_nonscalar_iterator(test)
             grid = makegrid(1, {1:3, 1:4, [[1;2;3], [4;5;6]]}, ["a", "b", "c"]);
             grid = sparse(grid);
@@ -857,8 +942,136 @@ classdef GridTests < AbstractTestCase
         
         function it_can_select_first_iter_value(test)
             grid = containers.Grid(1, {1:3, 1:4}, ["a", "b"]);
-            test.verifyEqual(grid.Iter{"b"}(1), 1);
-            test.verifyEqual(grid.Iter{"b"}(end), 4);
+            test.verifyEqual(grid.b(1), 1);
+            test.verifyEqual(grid.b(end), 4);
+        end
+
+        function it_can_linear_index_and_get_both_data_and_iterator(test)
+            grid = containers.Grid(rand(3, 4), {1:3, 1:4}, ["a", "b"]);
+            [data, iter] = grid.at(6);
+            test.verifyEqual(data, grid.Data(6));
+            test.verifyEqual(iter, struct("a", 3, "b", 2));
+        end
+
+        function it_can_linear_index_on_sparse_grid_as_well(test)
+            grid = containers.Grid(rand(3, 4), {1:3, 1:4}, ["a", "b"]);
+            grid = sparse(grid);
+            [data, iter] = grid.at(6);
+            test.verifyEqual(data, grid.Data(6));
+            test.verifyEqual(iter, struct("a", 3, "b", 2));
+        end
+
+        function it_displays_iterator_information(test)
+            grid = containers.Grid(true, {1:3, 1:4}, ["a", "b"]); %#ok<NASGU>
+            text = evalc('grid');
+            test.verifySubstring(text, "2-dimensional");
+            test.verifySubstring(text, "a: [1 2 3]");
+            test.verifySubstring(text, "b: [1 2 3 4]");
+            test.verifySubstring(text, "= 12 iterations");
+            test.verifySubstring(text, "logical");
+            test.verifySubstring(text, "12 are <true>");
+        end
+
+        function it_displays_sparse_iterator_information(test)
+            grid = containers.Grid(rand(3, 4), {1:3, 1:4}, ["a", "b"]).sparse(); %#ok<NASGU>
+            text = evalc('grid');
+            test.verifySubstring(text, "2-dimensional");
+            test.verifySubstring(text, "sparse");
+            test.verifySubstring(text, "{""a"":2,""b"":3}");
+            test.verifySubstring(text, "= 12 iterations");
+            test.verifySubstring(text, "double");
+        end
+
+        function it_display_data_bytes_size_in_human_readable_format(test)
+            grid = makegrid(zeros(1, 1e1)); %#ok<NASGU>
+            test.verifySubstring(evalc('grid'), "580 bytes");
+            grid = makegrid(zeros(1, 1e2)); %#ok<NASGU>
+            test.verifySubstring(evalc('grid'), "3 kB");
+            grid = makegrid(zeros(1, 1e5)); %#ok<NASGU>
+            test.verifySubstring(evalc('grid'), "2 MB");
+            grid = makegrid(zeros(1, 1e8)); %#ok<NASGU>
+            test.verifySubstring(evalc('grid'), "2 GB");
+        end
+        
+        function it_knows_if_empty(test)
+            grid = makegrid();
+            test.verifyTrue(grid.isempty());
+        end
+
+        function it_returns_empty_size_if_no_iterators(test)
+            grid = makegrid();
+            test.verifyEqual(size(grid), zeros(1, 0));
+        end
+
+        function it_can_assign_size_to_nargout(test)
+            grid = makegrid(1, {1:3, 1:4}, ["a", "b"]);
+
+            [a, b] = size(grid);
+            test.verifyEqual(a, 3);
+            test.verifyEqual(b, 4);
+
+            grid = sparse(grid);
+
+            [a, b] = size(grid);
+            test.verifyEqual(a, 3);
+            test.verifyEqual(b, 4);
+        end
+
+        function it_can_pipe_function_with_zero_nargout(test)
+            a = containers.Grid(rand(3, 4), {1:3, 1:4}, ["a", "b"]);
+            b = a.pipe(@silent);
+            test.verifyEqual(a, b);
+            
+            function silent(~)
+            end
+        end
+
+        function it_can_squeeze_out_singular_dimensions(test)
+            [grid, iter] = makegrid(1, {1:3, 1:1, 1:4}, ["a", "b", "c"]).squeeze();
+            test.verifyEqual(size(grid), [3, 4]);
+            test.verifyEqual(grid.Dims, ["a", "c"]);
+            test.verifyEqual(iter, struct("b", 1));
+        end
+
+        function it_can_squeeze_out_singular_dimensions_sparse(test)
+            [grid, iter] = makegrid(1, {1:3, 1:1, 1:4}, ["a", "b", "c"]).sparse().squeeze();
+            test.verifyEqual(size(grid), [3, 4]);
+            test.verifyEqual(grid.Dims, ["a", "c"]);
+            test.verifyEqual(iter, struct("b", 1));
+        end
+
+        function it_can_squeeze_out_singular_nan_dimensions_sparse(test)
+            [grid, iter] = makegrid(1, {1:3, nan, 1:4}, ["a", "b", "c"]).sparse().squeeze();
+            test.verifyEqual(size(grid), [3, 4]);
+            test.verifyEqual(grid.Dims, ["a", "c"]);
+            test.verifyEqual(iter, struct("b", nan));
+        end
+
+        function it_can_slice_by_value_in_struct_field(test)
+            grid = makegrid(struct('a', {1, 2; 1, 2}, 'b', {4, 4; 5, 5}));
+            grid = grid(".a", 2);
+            test.verifyEqual(grid.Data, struct('a', {2; 2}, 'b', {4; 5}));
+        end
+
+        function it_can_use_a_2d_celll_to_define_grid_with_iter(test)
+            grid = makegrid(1, {
+                'a', 1:3
+                'b', 1:4
+            });
+            test.verifyEqual(grid.Data, ones(3, 4));
+            test.verifyEqual(grid.Dims, ["a", "b"]);
+            test.verifyEqual(grid.Iter, {1:3, 1:4});
+        end
+
+        function it_cannot_have_two_nan_in_one_iter(test)
+            test.verifyError(@() makegrid(1, {1:3, [1, nan, nan]}), "grid:InvalidInput");
+            test.verifyError(@() makegrid(1, {1:3, ["1", nan, nan]}), "grid:InvalidInput");
+        end
+
+        function it_can_rename_dims_in_sparse_mode_on_dims_prop(test)
+            grid = makegrid(1, {1:3, 1:4}, ["a", "b"]).sparse();
+            grid.Dims = ["c", "d"];
+            test.verifyEqual(fieldnames(grid.Iter), {'c'; 'd'});
         end
     end
 end
