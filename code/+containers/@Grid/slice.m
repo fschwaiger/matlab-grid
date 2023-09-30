@@ -48,6 +48,11 @@ function self = slice(self, varargin)
         self.Iter = self.Iter(varargin{1});
         self.Data = self.Data(varargin{1});
         
+    elseif isstring(varargin{1}) || ischar(varargin{1}) && varargin{1} ~= ":"
+
+        % value indexing (will go into subsref and back here with numeric indices)
+        self = subsref(self, substruct('()', varargin));
+        
     else
 
         % slice the iterators independently, each one according to the respective indexer
