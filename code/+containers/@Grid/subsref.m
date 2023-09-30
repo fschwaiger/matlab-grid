@@ -1,32 +1,37 @@
 function varargout = subsref(self, s)
     % SUBSREF - Customizes indexing into the grid, getting data.
+    
+    s1t = s(1).type;
+    s1s = s(1).subs;
 
-    if s(1).type == "()"
+    if s1t == "." && (s1s == "Data" || s1s == "Iter" || s1s == "Dims" || s1s == "User" || ismethod(self, s1s))
+        % access property or method: e.g. grid.size
+        [varargout{1:nargout}] = builtin('subsref', self, s);
+    elseif s1t == "()"
         % select data and continue: e.g. grid(...)
-        args = subs2args(self, s(1).subs);
-        varargout = {slice(self, args{:})};
+        varargout = {slice(self, s1s{:})};
         if numel(s) > 1
             [varargout{1:nargout}] = subsref(varargout{:}, s(2:end));
         end
-    elseif s(1).type == "{}"
+    elseif s1t == "{}"
         % select data via named iterators: e.g. grid{"a", "b"}
-        args = subs2args(self, s(1).subs);
-        varargout = {self.Data(args{:})};
+        varargout = {slice(self, s1s{:}).Data};
         if numel(s) > 1
             [varargout{1:nargout}] = subsref(varargout{:}, s(2:end));
         end
-    elseif s(1).type == "." && ismember(s(1).subs, self.Dims)
+    elseif s1t == "." && ismember(s1s, self.Dims)
         % select Iter by name, return values: e.g. grid.a
         if issparse(self)
-            varargout = {[self.Iter.(s(1).subs)]};
+            varargout = {[self.Iter.(s1s)]};
         else
-            [varargout{1:nargout}] = self.Iter{self.Dims == s(1).subs};
+            [varargout{1:nargout}] = self.Iter{self.Dims == s1s};
         end
         if numel(s) > 1
             [varargout{1:nargout}] = subsref(varargout{:}, s(2:end));
         end
     else
-        [varargout{1:nargout}] = builtin('subsref', self, s);
+        args = arrayfun(@(ss) ss.subs, s, 'UniformOutput', false);
+        [varargout{1:nargout}] = pluck(self, args{:}).Data;
     end
 end
 

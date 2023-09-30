@@ -84,10 +84,11 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid.slice(1, 2, 2).Data, false);
         end
 
-        function it_can_be_indexed_by_value(test)
-            grid = containers.Grid(false(3, 2, 4), {5:7, 8:9, 10:13});
-            data = grid{5:6, 8, :};
-            test.verifyEqual(size(data), [2, 1, 4]);
+        function it_can_be_indexed_via_braces(test)
+            t = rand(3, 2, 4);
+            grid = containers.Grid(t, {5:7, 8:9, 10:13});
+            data = grid{2:1, 1, :};
+            test.verifyEqual(data, t(2:1, 1, :));
         end
 
         function it_can_be_sliced(test, nd)
@@ -164,7 +165,7 @@ classdef GridTests < AbstractTestCase
 
         function it_can_subsasgn_data(test)
             grid = containers.Grid(struct("a", {1,2;3,4}), {1:2, 3:4});
-            grid{1,4}.a = 42;
+            grid{1, 2}.a = 42;
             test.verifyEqual(grid.pluck("a").Data, [1,42;3,4]);
 
             grid = containers.Grid(struct("a", {1,2;3,4}), {1:2, 3:4});
@@ -482,7 +483,7 @@ classdef GridTests < AbstractTestCase
             b = containers.Grid(true,  {1:2, [1, nan, 3], 1:3});
 
             test.verifyTrue(iscompatible(a, b));
-            test.verifyEqual(a([1, 2], [1, nan], :).size(), [2, 2, 3])
+            test.verifyEqual(a("x2", [1, nan]).size(), [2, 2, 3])
         end
 
         function it_can_have_missing_in_string_iterator(test)
@@ -745,36 +746,28 @@ classdef GridTests < AbstractTestCase
 
         function it_can_check_if_value_is_contained(test)
             data = rand(5, 5, 2);
-            data(1,1,1) = 42;
-            iter = {1:5, 1:5, ["up", "down"]};
-            dims = ["a", "b", "flaps"];
-            grid = containers.Grid(data, iter, dims);
+            data(1,1,2) = 42;
+            grid = containers.Grid(data, {1:5, 1:5, ["up", "down"]}, ["a", "b", "flaps"]);
             test.verifyTrue(grid.contains(42));
-            test.verifyTrue(grid.contains(42, 1, 1, "up"));
-            test.verifyTrue(grid.contains(42, {1, 1, "up"}));
-            test.verifyTrue(grid.contains(42, struct("flaps", "up")));
-            test.verifyFalse(grid.contains(42, 1, 1, "down"));
-            test.verifyFalse(grid.contains(42, {1, 1, "down"}));
-            test.verifyFalse(grid.contains(42, struct("flaps", "down")));
-            test.verifyFalse(grid.contains(42, "flaps", "down"));
+            test.verifyFalse(grid.contains(43));
 
             [~, iter] = grid.contains(42);
-            test.verifyEqual(iter, struct("a", 1, "b", 1, "flaps", "up"));
+            test.verifyEqual(iter, struct("a", 1, "b", 1, "flaps", "down"));
         end
 
         function it_can_assign_data(test)
-            grid = containers.Grid(zeros(5, 5, 2), {1:5, 1:5, ["up", "down"]}, ["a", "b", "flaps"]);
-            grid{1, 1, "up"} = 42;
-            test.verifyEqual(grid{1, 1,  "up" }, 42);
-            test.verifyEqual(grid{1, 1,  "down" }, 0);
+            grid = containers.Grid(zeros(5, 2, 2), {1:5, 5:6, ["up", "down"]}, ["a", "b", "flaps"]);
+            grid{"a", 1, "b", 5, "flaps", "up"} = 42;
+            test.verifyEqual(grid{1, 1, 1}, 42);
+            test.verifyEqual(grid{1, 1, 2}, 0);
             test.verifyEqual(sum(grid.Data, 'all'), 42);
 
-            grid(1, 1, "down") = makegrid(7, {1, 1, "down"}, ["a", "b", "flaps"]);
-            test.verifyEqual(grid{1, 1,  "down"}, 7);
+            grid("a", 1, "b", 5, "flaps", "down") = makegrid(7, {1, 1, "down"}, ["a", "b", "flaps"]);
+            test.verifyEqual(grid{1, 1,  2}, 7);
             test.verifyEqual(sum(grid.Data, 'all'), 49);
 
-            grid{1, 1, "down"} = makegrid(7, {1, 1, "down"}, ["a", "b", "flaps"]).Data;
-            test.verifyEqual(grid{1, 1,  "down"}, 7);
+            grid{1, 1, 2} = makegrid(7, {1, 1, "down"}, ["a", "b", "flaps"]).Data;
+            test.verifyEqual(grid{"a", 1, "b", 5, "flaps", "down"}, 7);
             test.verifyEqual(sum(grid.Data, 'all'), 49);
         end
 
@@ -937,6 +930,12 @@ classdef GridTests < AbstractTestCase
             grid = grid(struct("a", {2, 3}, "b", {[1;2;3], [4;5;6]}));
             test.verifyEqual(numel(grid.Data), 2);
         end
+        
+        function it_can_define_colon_in_struct_iterator(test)
+            expect = containers.Grid(1, {1:3, [[1;2;3], [4;5;6]]}, ["a", "b"]);
+            actual = expect(struct("a", {':', ':'}, "b", {[1;2;3], [4;5;6]}));
+            test.verifyEqual(actual, expect);
+        end
 
         function it_can_get_size_at_dimension(test)
             grid = containers.Grid(1, {1:3, 1:4, [[1;2;3], [4;5;6]]}, ["a", "b", "c"]);
@@ -1089,6 +1088,15 @@ classdef GridTests < AbstractTestCase
             grid = makegrid(struct('a', {1, 2; 1, 2}, 'b', {4, 4; 5, 5}));
             grid.Data(1, 1).a = 42;
             test.verifyEqual(grid.Data(1, 1).a, 42);
+        end
+
+        function it_extracts_deep_struct_field_via_subsref(test)
+            grid = makegrid(struct('a', num2cell(struct('c', {[1;2], [3;4], [5;6]})), 'b', {4, 5, 6}));
+            test.verifyEqual(grid.a.c, {[1;2], [3;4], [5;6]});
+            test.verifyEqual(grid.a.c(2), [2, 4, 6]);
+            
+            test.verifyEqual(grid.a.c, grid.pluck('a', 'c').Data);
+            test.verifyEqual(grid.a.c(2), grid.pluck('a', 'c', 2).Data);
         end
     end
 end

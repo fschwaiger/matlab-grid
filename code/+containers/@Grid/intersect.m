@@ -43,8 +43,9 @@ function self = intersect(self, with, joinFcn, reduceFcnSelf, reduceFcnWith)
 
     % force onto same iterators
     iter = cellfun(@intersect, self.Iter, with.Iter, "Uniform", false);
-    self = subsref(self, substruct('()', iter));
-    with = subsref(with, substruct('()', iter));
+    args = [cellstr(self.Dims); iter];
+    self = slice(self, args{:});
+    with = slice(with, args{:});
 
     % join the grids element-wise
     self = map(self, with, joinFcn);

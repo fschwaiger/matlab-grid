@@ -1,25 +1,23 @@
 function n = numArgumentsFromSubscript(self, s, indexingContext)
     % Returns 1, to make brace {} indexing work
     
+    s1t = s(1).type;
+    s1s = s(1).subs;
+    
+    if s1t == "." && (s1s == "Data" || s1s == "Iter" || s1s == "Dims" || s1s == "User" || ismethod(self, s1s))
+        % if it is a property or method, we do not output vararg
+        n = builtin('numArgumentsFromSubscript', self, s, indexingContext);
+        return
+    end
+    
     % we are accessing a struct field or property from the data matrix
-    if s(1).type == "{}" && numel(s) > 1 && s(2).type == "."
-        args = subs2args(self, s(1).subs);
+    if s1t == "{}" && numel(s) > 1 && s(2).type == "."
+        args = subs2args(self, s1s);
         n = numel(self.Data(args{:}));
         return
     end
-
-    % slicing the grid never changes the dimensionality of the output
-    if any(s(1).type(1) == '({')
-        s = s(2:end);
-    end
     
-    if isempty(s) || s(1).type == "." && ismember(s(1).subs, self.Dims)
-        % if it is custom access, we do not output vararg
-        n = 1;
-    else
-        % everything else is normal
-        n = builtin('numArgumentsFromSubscript', self, s, indexingContext);
-    end
+    n = 1;
 end
 
 %#release exclude file

@@ -48,7 +48,8 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
     % extend grids onto same iterators
     self = extendIter(self, with, missingSelf);
     with = extendIter(with, self, missingWith);
-    with = subsref(with, substruct('()', self.Iter));
+    args = [cellstr(self.Dims); self.Iter];
+    with = slice(with, args{:});
 
     % join the grids element-wise
     self = map(self, with, joinFcn);

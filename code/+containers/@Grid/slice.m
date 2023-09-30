@@ -6,62 +6,35 @@ function self = slice(self, varargin)
     %
     % See also containers.Grid/partition
 
-    % allow user to slice via logical indexing function
-    if nargin == 2 && isa(varargin{1}, 'function_handle')
-        self = subsref(self, substruct('()', varargin));
-        return
-    end
+    args = subs2args(self, varargin);
 
-    % do not index at all
-    if nargin == 1
-        return
-    end
-
-    if issparse(self)
-
-        % cannot run the code below or 'setdiff' would produce []
-        self.Iter = self.Iter(varargin{1});
-        self.Data = self.Data(varargin{1});
-
-    elseif nargin == 2 && islogical(varargin{1}) && ndims(self) > 1
-
+    if isscalar(args) && islogical(args{1}) && ndims(self) > 1
         % cache set of all dimensions iterator
         dims = 1:ndims(self);
-        mask = varargin{1};
+        mask = args{1};
 
         % cell of logical masks for all dimensions
-        split = arrayfun(@(iDim) reshape(any(mask, setdiff(dims, iDim)), 1, []), dims, 'Uniform', false);
+        args = arrayfun(@(iDim) reshape(any(mask, setdiff(dims, iDim)), 1, []), dims, 'Uniform', false);
 
         % would produce a wrong result if non-rectangular
-        if not(all(mask(split{:}), 'all'))
+        if not(all(mask(args{:}), 'all'))
             self = sparse(self);
-            split = {mask};
+            args = {mask};
         end
-
-        % apply the slice
-        self = slice(self, split{:});
-        
-    elseif isscalar(varargin) && ndims(self) > 1
-        
-        % select as sparse in correct order
-        self = sparse(self);
-        self.Iter = self.Iter(varargin{1});
-        self.Data = self.Data(varargin{1});
-        
-    elseif isstring(varargin{1}) || ischar(varargin{1}) && varargin{1} ~= ":"
-
-        % value indexing (will go into subsref and back here with numeric indices)
-        self = subsref(self, substruct('()', varargin));
-        
-    else
-
-        % slice the iterators independently, each one according to the respective indexer
-        self.Iter = cellfun(@(iter, arg) iter(:, arg), self.Iter, varargin, 'Uni', false);
-
-        % slice the data according to the given indices
-        self.Data = self.Data(varargin{:});
-
     end
+
+    if issparse(self) || (isscalar(args) && ndims(self) > 1)
+        self = sparse(self);
+        self.Iter = self.Iter(args{:});
+        self.Data = self.Data(args{:});
+        return
+    end
+
+    % slice the iterators independently, each one according to the respective indexer
+    self.Iter = cellfun(@(iter, arg) iter(:, arg), self.Iter, args, 'Uniform', false);
+
+    % slice the data according to the given indices
+    self.Data = self.Data(args{:});
 end
 
 %#release exclude file
