@@ -389,7 +389,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         n = numArgumentsFromSubscript(self, s, indexingContext);
         n = numel(self);
         self = only(self, keys);
-        varargout = partition(self, N);
+        varargout = partition(self, varargin);
         self = permute(self, dims);
         varargout = pipe(self, fcn);
         self = pluck(self, key);

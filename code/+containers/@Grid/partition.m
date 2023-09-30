@@ -1,4 +1,4 @@
-function varargout = partition(self, N)
+function varargout = partition(self, varargin)
     % Splits grid into multiple parts.
     %
     %   partitions = grid.partition(3)
@@ -14,22 +14,35 @@ function varargout = partition(self, N)
 
     if nargin < 2
         % assume N from number of requested outputs
-        N = nargout;
+        varargin{1} = nargout;
     end
 
-    if isa(N, 'function_handle')
+    if nargin == 2 && isa(varargin{1}, 'function_handle')
         % specify splits dynamically
-        [varargout{1:nargout}] = partitionByFunction(self, N);
+        [varargout{1:nargout}] = partitionByFunction(varargin{1});
+    elseif nargin > 2
+        % specify splits by dimension slice
+        [varargout{1:nargout}] = partitionBySlice(varargin);
     else
         % specify splits automatically
-        [varargout{1:nargout}] = partitionIntoEqualParts(self, N);
+        [varargout{1:nargout}] = partitionIntoEqualParts(varargin{1});
+    end
+    
+    function varargout = partitionBySlice(subs)
+        % Partitions the grid by giving slice arguments. The defined slice
+        % goes into output 1, while output 2 will have all the rest.
+        
+        mask = false(size(self.Data));
+        args = subs2args(self, subs);
+        mask(args{:}) = true;
+        varargout = {slice(self, mask), slice(self, ~mask)};
     end
 
-    function varargout = partitionByFunction(grid, fcn)
+    function varargout = partitionByFunction(fcn)
         % Partitions the grid by an indexing function.
 
         % apply user partitioning function, return either numerical, or {logical}
-        mask = grid.map(fcn).Data;
+        mask = self.map(fcn).Data;
 
         if iscell(mask)
             % user returned a logical array with one element 'true'
@@ -47,13 +60,13 @@ function varargout = partition(self, N)
             nParts = max(mask, [], 'all');
         end
 
-        varargout = arrayfun(@(iPart) {slice(grid, mask == iPart)}, 1:nParts);
+        varargout = arrayfun(@(iPart) {slice(self, mask == iPart)}, 1:nParts);
     end
 
-    function varargout = partitionIntoEqualParts(grid, N)
+    function varargout = partitionIntoEqualParts(N)
         % Partitions the grid into N mostly equal parts.
 
-        mySize = size(grid);
+        mySize = size(self);
         [mySize, largest] = sort(mySize);
         factors = factor(N);
 
@@ -92,18 +105,18 @@ function varargout = partition(self, N)
         splits(largest) = splits;
 
         % split the nd space into (N) parts
-        d = mat2cell(grid.Data, splits{1:ndims(grid.Data)});
-        n = ndims(grid);
+        d = mat2cell(self.Data, splits{1:ndims(self.Data)});
+        n = ndims(self);
 
         % also do the same with the iterators
         iters = cell(1, n);
-        [iters{:}] = ndgrid(grid.Iter{:});
+        [iters{:}] = ndgrid(self.Iter{:});
         iters = cellfun(@(iter) mat2cell(iter, splits{:}), iters, 'Uni', false);
 
-        % create an array of grid from the current one as prototype, and
+        % create an array of self from the current one as prototype, and
         % make it empty before duplication, could exhaust memory else
-        grid.Data = [];
-        varargout = repmat({grid}, 1, numel(d));
+        self.Data = [];
+        varargout = repmat({self}, 1, numel(d));
 
         % assign the data and iterator slices to each partition
         for k = 1:numel(d)

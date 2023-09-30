@@ -353,6 +353,17 @@ classdef GridTests < AbstractTestCase
             test.verifyTrue(all(a.Data <= 0.5, 'all'));
             test.verifyTrue(all(b.Data  > 0.5, 'all'));
         end
+        
+        function it_can_partition_by_slice(test)
+            grid = containers.Grid(rand(8, 12, 10, 9));
+            [a, b] = grid.partition("x1", 1:2);
+            
+            test.verifyEqual(numel(a.Data) + numel(b.Data), numel(grid.Data));
+            test.verifyEqual(a.Dims, grid.Dims);
+            test.verifyEqual(b.Dims, grid.Dims);
+            test.verifyEqual(a.Iter, {1:2, 1:12, 1:10, 1:9});
+            test.verifyEqual(b.Iter, {3:8, 1:12, 1:10, 1:9});
+        end
 
         function it_can_be_parallelized(test)
             if isempty(gcp('nocreate'))
