@@ -26,7 +26,7 @@ function self = subsasgn(self, s, varargin)
         end
     else
         % property access
-        self = builtin('subsasgn', self, s, data);
+        self = builtin('subsasgn', self, s(1), data);
     end
 end
 

@@ -1073,5 +1073,11 @@ classdef GridTests < AbstractTestCase
             grid.Dims = ["c", "d"];
             test.verifyEqual(fieldnames(grid.Iter), {'c'; 'd'});
         end
+        
+        function it_assigns_struct_field_correctly(test)
+            grid = makegrid(struct('a', {1, 2; 1, 2}, 'b', {4, 4; 5, 5}));
+            grid.Data(1, 1).a = 42;
+            test.verifyEqual(grid.Data(1, 1).a, 42);
+        end
     end
 end
