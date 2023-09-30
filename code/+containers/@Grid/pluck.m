@@ -1,23 +1,32 @@
-function self = pluck(self, keys)
+function self = pluck(self, varargin)
     % Extracts values from a given struct field into a new grid.
     %
     %   grid = grid.pluck(key)
     %   result = evidence.pluck("result")
     %   result = evidence.pluck("Analysis", "Margin")
-
-    arguments
-        self containers.Grid
-        keys (1, 1) string
-    end
-
-    for key = strsplit(keys, ".")
-        data = reshape({self.Data.(key)}, size(self.Data));
-        if all(cellfun(@isscalar, data), 'all')
-            self.Data = reshape([data{:}], size(self.Data));
+    
+    data = self.Data;
+    sz = size(data);
+    
+    for arg = varargin
+        a = arg{1};
+        
+        if isstruct(data)
+            data = {data.(a)};
+        elseif iscell(a)
+            data = cellfun(@(d) d(a{:}), data, 'UniformOutput', false);
         else
-            self.Data = data;
+            data = cellfun(@(d) d(a), data, 'UniformOutput', false);
+        end
+        
+        if all(cellfun(@isscalar, data))
+            data = reshape([data{:}], sz);
+        else
+            data = reshape(data, sz);
         end
     end
+    
+    self.Data = data;
 end
 
 %#release exclude file

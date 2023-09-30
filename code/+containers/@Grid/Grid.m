@@ -392,7 +392,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         varargout = partition(self, varargin);
         self = permute(self, dims);
         varargout = pipe(self, fcn);
-        self = pluck(self, key);
+        self = pluck(self, varargin);
         self = reject(self, fcn);
         self = retain(self, dims, reduceFcn);
         self = slice(self, varargin);
