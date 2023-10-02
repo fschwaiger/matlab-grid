@@ -1,4 +1,3 @@
-
 function varargout = pipe(self, fcn)
     % Pipes the grid through the given function handle.
     %

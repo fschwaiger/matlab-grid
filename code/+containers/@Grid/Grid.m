@@ -7,6 +7,10 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]})
     %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]})
     %   grid = containers.Grid(rand(3, 3, 3))
+    %   grid = containers.Grid(true, {
+    %       "speed", -100:50:100
+    %       "flaps", ["down", "up"]
+    %   })
     %
     % Grids can be sliced in several ways using () or {} indexing. The ()
     % indexing operator returns a new grid, while the {} indexing operator
@@ -14,15 +18,13 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     % the built-in cell arrays, or the table class. Inside () or {}, the same
     % arguments can be used:
     %
-    %   % returns a rectangular grid, matching values from all iterators
-    %   grid = grid(iter1, iter2, ...)
-    %   data = grid{iter1, iter2, ...}
-    %   
-    %   % returns grid at numerical indices (try to use value matching instead)
+    %   % returns a rectangular grid, matching INDEX from all iterators
+    %   grid = grid(iDim1, iDim2, ...)
     %   grid = grid.slice(iDim1, iDim2, ...)
+    %   data = grid{iDim1, iDim2, ...}
     %   data = grid.Data(iDim1, iDim2, ...)
     %
-    %   % matches only values from selected iterators, keeps others ':' (all)
+    %   % matches only VALUES from selected iterators, keeps others ':' (all)
     %   grid = grid("Dim1", iter1, "Dim2", iter2, ...)
     %   data = grid{"Dim1", iter1, "Dim2", iter2, ...}
     %
@@ -43,7 +45,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   grid = grid(@matchingFcn)
     %   data = grid{@matchingFcn}
     %
-    %   % data at one linear index
+    %   % data with struct iterator at one linear index
     %   [data, iter] = grid.at(iLinear)
     %
     % Some examples for slicing operations:
@@ -82,6 +84,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   last          -  Returns the last element where fcn is true.
     %   map           -  Transforms the grid(s) into (a) new one(s).
     %   ndims         -  Returns the number of grid dimensions.
+    %   numel         -  Returns number of grid iterations.
     %   only          -  Keeps only given fields from a struct-valued grid.
     %   union         -  The combined superspace of two or more grids.
     %   partition     -  Splits grid into multiple parts.
@@ -363,14 +366,14 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
     %#release exclude
     methods % deferred to file, signatures only
-        self = assign(self, other);
+        self = assign(self, from);
         [data, iter] = at(self, k);
         self = applyTo(self, testCase, options);
         self = collapse(self, dims, reduceFcn);
-        [tf, index] = contains(self, value, varargin);
+        [tf, index] = contains(self, value);
         self = dense(self, default);
         self = distributed(self);
-        each(self, fcn);
+        self = each(self, varargin);
         tf = every(self, fcn);
         self = except(self, keys);
         self = extend(self, dims, iter);
@@ -396,14 +399,14 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = reject(self, fcn);
         self = retain(self, dims, reduceFcn);
         self = slice(self, varargin);
-        [data, iter] = sample(self, k);
-        self = save(self, file, varargin);
+        self = sample(self, k);
+        varargout = save(self, file, varargin)
         self = sort(self);
         self = sparse(self);
         [self, const] = squeeze(self);
         data = struct(self);
         varargout = subsref(self, s);
-        varargout = subsasgn(self, s, varargin);
+        self = subsasgn(self, s, varargin)
         self = union(self, with, joinFcn, missingSelf, missingWith);
         varargout = vec(self, varargin);
         self = where(self, value);
