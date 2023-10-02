@@ -1,58 +1,13 @@
 classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     % A high-dimension grid object with named dimension iterators.
     %
+    %   grid = containers.Grid(matrix)
+    %   grid = containers.Grid(default, iterators)
     %   grid = containers.Grid(default, iterators, dimensions)
-    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]}, ["speed", "flaps"])
-    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]}, ["speed", "flaps"])
-    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]})
-    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]})
-    %   grid = containers.Grid(rand(3, 3, 3))
-    %   grid = containers.Grid(true, {
-    %       "speed", -100:50:100
-    %       "flaps", ["down", "up"]
-    %   })
-    %
-    % Grids can be sliced in several ways using () or {} indexing. The ()
-    % indexing operator returns a new grid, while the {} indexing operator
-    % returns the data at the given indices. This behavior is similar to
-    % the built-in cell arrays, or the table class. Inside () or {}, the same
-    % arguments can be used:
-    %
-    %   % returns a rectangular grid, matching INDEX from all iterators
-    %   grid = grid(iDim1, iDim2, ...)
-    %   grid = grid.slice(iDim1, iDim2, ...)
-    %   data = grid{iDim1, iDim2, ...}
-    %   data = grid.Data(iDim1, iDim2, ...)
-    %
-    %   % matches only VALUES from selected iterators, keeps others ':' (all)
-    %   grid = grid("Dim1", iter1, "Dim2", iter2, ...)
-    %   data = grid{"Dim1", iter1, "Dim2", iter2, ...}
-    %
-    %   % returns a sparse grid at all points where data property matches value
-    %   % (notice the leading dot, which is required to distinguish from iterators)
-    %   grid = grid(".DataProp1", value1, ...)
-    %   data = grid{".DataProp1", value1, ...}
-    %
-    %   % returns a sparse grid at all given iterator combinations
-    %   grid = grid(iterStructs)
-    %   data = grid{iterStructs}
-    %
-    %   % returns a sparse grid at all marked locations
-    %   grid = grid(logicalMask)
-    %   data = grid{logicalMask}
-    %
-    %   % returns a sparse grid at all locations where function evaluates true
-    %   grid = grid(@matchingFcn)
-    %   data = grid{@matchingFcn}
-    %
-    %   % data with struct iterator at one linear index
-    %   [data, iter] = grid.at(iLinear)
-    %
-    % Some examples for slicing operations:
-    %
-    %   forwardWithoutFlaps = grid(0:50:100, "up")
-    %   dataAtFlapsUp = grid{"flaps", "up"}
-    %   [grid{".Success", -1}.Success] = deal(0);
+    %   grid = containers.Grid(default, iterators, dimensions, userData)
+    %   grid = containers.Grid(propertyName, propertyValue, ...)
+    %   grid = containers.Grid(Data=data, Iter=iter, Dims=dims, User=user)
+    %   grid = containers.Grid(serializedAsStruct)
     %
     % Grid properties:
     %   Data  -  High-dimensional data container.
@@ -102,6 +57,69 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   struct        -  Serializes data to be shared in a MAT file.
     %   vec           -  Vectorized map() function.
     %   where         -  Filters the grid using a value, the result is again a grid.
+    %
+    % There are several ways to construct a grid object. They all boild down to
+    % injecting the data, iter, dims and user properties. If left out or empty,
+    % default values will be used to construct the grid (e.g., empty dims will
+    % be filled with "x1", "x2", ...). The following examples are equivalent:
+    %
+    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]}, ["speed", "flaps"])
+    %   grid = containers.Grid(true, Iter={-100:50:100, ["down", "up"]}, Dims=["speed", "flaps"])
+    %   grid = containers.Grid(true, {
+    %       "speed", -100:50:100
+    %       "flaps", ["down", "up"]
+    %   })
+    %
+    % The following examples are also equivalent, but have dims ["x1", "x2"]:
+    %
+    %   grid = containers.Grid(true, {-100:50:100, ["down", "up"]})
+    %   grid = containers.Grid(Data=true, Iter={-100:50:100, ["down", "up"]})
+    %   grid = containers.Grid("Data", true, "Iter", {-100:50:100, ["down", "up"]})
+    %
+    % You can put any kind of matrix data in the grid, as long as the matrix dimensions
+    % remain consistent with the iterators - event struct, object and cell matrices.
+    %
+    % Grids can be sliced in several ways using () or {} indexing. The ()
+    % indexing operator returns a new grid, while the {} indexing operator
+    % returns the data at the given indices. This behavior is similar to
+    % the built-in cell arrays, or the table class. Inside () or {}, the same
+    % arguments can be used:
+    %
+    %   % returns a rectangular grid, matching INDEX from all iterators
+    %   grid = grid(iDim1, iDim2, ...)
+    %   grid = grid.slice(iDim1, iDim2, ...)
+    %   data = grid{iDim1, iDim2, ...}
+    %   data = grid.Data(iDim1, iDim2, ...)
+    %
+    %   % matches only VALUES from selected iterators, keeps others ':' (all)
+    %   grid = grid("Dim1", iter1, "Dim2", iter2, ...)
+    %   data = grid{"Dim1", iter1, "Dim2", iter2, ...}
+    %
+    %   % returns a sparse grid at all points where data property matches value
+    %   % (notice the leading dot, which is required to distinguish from iterators)
+    %   grid = grid(".DataProp1", value1, ...)
+    %   data = grid{".DataProp1", value1, ...}
+    %
+    %   % returns a sparse grid at all given iterator combinations
+    %   grid = grid(iterStructs)
+    %   data = grid{iterStructs}
+    %
+    %   % returns a sparse grid at all marked locations
+    %   grid = grid(logicalMask)
+    %   data = grid{logicalMask}
+    %
+    %   % returns a sparse grid at all locations where function evaluates true
+    %   grid = grid(@matchingFcn)
+    %   data = grid{@matchingFcn}
+    %
+    %   % data with struct iterator at one linear index
+    %   [data, iter] = grid.at(iLinear)
+    %
+    % Some examples for slicing operations:
+    %
+    %   forwardWithoutFlaps = grid(0:50:100, "up")
+    %   dataAtFlapsUp = grid{"flaps", "up"}
+    %   [grid{".Success", -1}.Success] = deal(0);
     %
     % See also makegrid
 
@@ -365,7 +383,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     end
 
     %#release exclude
-    methods % deferred to file, signatures only
+    methods
         self = assign(self, from);
         [data, iter] = at(self, k);
         self = applyTo(self, testCase, options);
@@ -422,6 +440,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
     methods (Access = protected)
         function text = getHeader(self)
+            % Customizes the command line object display header.
+
             link = @(x) ['''' x ''''];
             if usejava('desktop')
                 link = @(x) sprintf('<a href="matlab:helpPopup %s">%s</a>', x, regexprep(x, ".*\.", ""));
@@ -438,6 +458,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         end
 
         function text = getFooter(self)
+            % Customizes the command line object display footer.
+
             suffix = '';
             if islogical(self.Data)
                 suffix = sprintf(' (%d are <true>)', sum(self.Data, 'all'));
@@ -462,6 +484,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         end
 
         function g = getPropertyGroups(self)
+            % Customizes the command line object display property groups.
+
             if issparse(self)
                 n = min(10, numel(self.Iter));
                 d = "- " + arrayfun(@jsonencode, self.Iter(1:n), "Uniform", false);
@@ -484,10 +508,14 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 end
 
 function mustBeCellOrStruct(s)
+    % Checks whether the given value is a cell array or struct array.
+
     assert(iscell(s) || isstruct(s), "grid:InvalidInput", "Iter must be either cell or struct array.");
 end
 
 function mustBeVarname(s)
+    % Checks whether the given value is a valid variable name.
+    
     assert(all(arrayfun(@isvarname, s)), "grid:InvalidInput", "Dims must be valid variable names.");
 end
 
