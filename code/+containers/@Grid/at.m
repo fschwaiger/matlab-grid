@@ -19,16 +19,18 @@ function [data, iter] = at(self, k)
         return
     end
     
-    % translate linear index in subscripts
-    subs = cell(1, ndims(self));
-    [subs{:}] = ind2sub(size(self), k);
-    
     % data can be retrieved by linear index, which is faster than subscripts
     data = self.Data(k);
     
-    % cell array of iterators needs to be subscripted
-    iter = cellfun(@(it, kk) it(:, kk), self.Iter, subs, "Uniform", false);
-    iter = cell2struct(iter, self.Dims, 2);
+    if nargout > 1
+        % translate linear index in subscripts
+        subs = cell(1, ndims(self));
+        [subs{:}] = ind2sub(size(self), k);
+
+        % cell array of iterators needs to be subscripted
+        iter = cellfun(@(it, kk) it(:, kk), self.Iter, subs, 'UniformOutput', false);
+        iter = cell2struct(iter, self.Dims, 2);
+    end
 end
 
 %#release exclude file

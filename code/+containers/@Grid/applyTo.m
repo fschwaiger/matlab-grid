@@ -24,11 +24,11 @@ function self = applyTo(self, testCase, options)
         "true/false values to select iteration points.");
 
     if options.FilterDisabled
-        self = self.where(true);
+        self = where(self, true);
     end
         
     % iterate over all value / key pairs
-    self.each(@makeAndAddIteration);
+    each(self, @makeAndAddIteration);
 
     function makeAndAddIteration(enabled, values)
         % this is the data type we need to add to the test case

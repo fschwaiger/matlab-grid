@@ -42,7 +42,7 @@ function varargout = partition(self, varargin)
         % Partitions the grid by an indexing function.
 
         % apply user partitioning function, return either numerical, or {logical}
-        mask = self.map(fcn).Data;
+        mask = map(self, fcn).Data;
 
         if iscell(mask)
             % user returned a logical array with one element 'true'

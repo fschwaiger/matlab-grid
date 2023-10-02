@@ -1,10 +1,11 @@
 function mask = struct2mask(self, values)
     % convert values into index arrays by search
 
-    assert(all(ismember(fieldnames(values), self.Dims)), "grid:InvalidInput", ...
+    dims = self.Dims;
+    assert(all(ismember(fieldnames(values), dims)), "grid:InvalidInput", ...
         "Trying to slice an unknown dimension.");
 
-    indices = arrayfun(@(v) values2indices(self, arrayfun(@(name) fieldorall(v, name), self.Dims, "Uniform", 0)), values, "Uniform", 0);
+    indices = arrayfun(@(v) values2indices(self, arrayfun(@(name) fieldorall(v, name), dims, "Uniform", 0)), values, "Uniform", 0);
     theSize = size(self);
 
     % check whether any index returned the wildcard ':'

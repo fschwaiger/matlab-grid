@@ -2,6 +2,7 @@ function args = subs2args(self, subs)
     % Prepares the subscript arguments for slicing the grid.
     
     args = subs;
+    dims = self.Dims;
 
     if isstruct(subs{1})
         % select via struct: grid(struct_array)
@@ -14,10 +15,10 @@ function args = subs2args(self, subs)
         args = {map(self, subs{1}).Data};
     elseif all(cellfun(@(v) isstring(v) && isscalar(v) || ischar(v), subs(1:2:end))) ...
             && mod(numel(subs), 2) == 0 ...
-            && all(ismember(cellstr(subs(1:2:end)), self.Dims))
+            && all(ismember(cellstr(subs(1:2:end)), dims))
         % select via struct: grid(name, value, ...)
-        [~, order] = ismember(cellstr(subs(1:2:end)), self.Dims);
-        args = repmat({':'}, 1, numel(self.Dims));
+        [~, order] = ismember(cellstr(subs(1:2:end)), dims);
+        args = repmat({':'}, 1, numel(dims));
         args(order) = subs(2:2:end);
         args = values2indices(self, args);
     elseif all(cellfun(@(v) isstring(v) && isscalar(v) || ischar(v), subs(1:2:end))) ...
@@ -28,6 +29,10 @@ function args = subs2args(self, subs)
         fields = extractAfter(cellstr(subs(1:2:end)), ".");
         values = subs(2:2:end);
         args = {map(self, @(data) fields2indices(self, data, fields, values)).Data};
+    elseif not(issparse(self)) && isscalar(args) && isscalar(args{1}) && isnumeric(args{1})
+        % select by linear and scalar index: grid(1)
+        args = cell(1, numel(dims));
+        [args{:}] = ind2sub(size(self), args{1});
     end
 end
 

@@ -14,7 +14,7 @@ function [data, iter] = find(self, fcn, k, direction)
         direction (1,1) string {mustBeMember(direction, ["first", "last"])} = "first"
     end
 
-    mask = sparse(self.map(fcn));
+    mask = sparse(map(self, fcn));
     data = self.Data(mask.Data);
     iter = mask.Iter(mask.Data);
 

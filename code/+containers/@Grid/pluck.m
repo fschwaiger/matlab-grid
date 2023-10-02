@@ -19,7 +19,7 @@ function self = pluck(self, varargin)
             data = cellfun(@(d) d(a), data, 'UniformOutput', false);
         end
         
-        if all(cellfun(@isscalar, data))
+        if isscalar(data{1})
             data = reshape([data{:}], sz);
         else
             data = reshape(data, sz);

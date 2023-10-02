@@ -8,11 +8,14 @@ function [self, const] = squeeze(self)
     %
     % See also containers.Grid/collapse
 
+    dims = self.Dims;
+    iter = self.Iter;
+
     if issparse(self)
-        fixed = false(size(self.Dims));
+        fixed = false(size(dims));
         const = cell(size(fixed));
-        for iDim = 1:numel(self.Dims)
-            const{iDim} = unique([self.Iter.(self.Dims(iDim))]);
+        for iDim = 1:numel(dims)
+            const{iDim} = unique([iter.(dims(iDim))]);
             if isscalar(const{iDim})
                 fixed(iDim) = true;
             elseif all(ismissing(const{iDim}))
@@ -21,11 +24,11 @@ function [self, const] = squeeze(self)
             end
         end
         
-        const = cell2struct(const(fixed), self.Dims(fixed), 2);
-        self.Iter = rmfield(self.Iter, self.Dims(fixed));
+        const = cell2struct(const(fixed), dims(fixed), 2);
+        self.Iter = rmfield(iter, dims(fixed));
     else
-        fixed = find(cellfun(@isscalar, self.Iter));
-        const = cell2struct(self.Iter(fixed), self.Dims(fixed), 2);
+        fixed = find(cellfun(@isscalar, iter));
+        const = cell2struct(iter(fixed), dims(fixed), 2);
         self = collapse(self, fixed, @(v) v);
     end
 end

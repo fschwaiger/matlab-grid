@@ -36,7 +36,7 @@ function self = retain(self, dims, reduceFcn)
 
     % these are the dimensions we need to collapse
     dimsToCollapse = setdiff(1:ndims(self), dims);
-    self = self.collapse(dimsToCollapse, reduceFcn);
+    self = collapse(self, dimsToCollapse, reduceFcn);
 
     % reorder, so that result matches order of input dims
     if issparse(self)
