@@ -11,7 +11,7 @@ function self = pluck(self, varargin)
     for arg = varargin
         a = arg{1};
         
-        if isstruct(data)
+        if isstruct(data) || isobject(data)
             data = {data.(a)};
         elseif iscell(a)
             data = cellfun(@(d) d(a{:}), data, 'UniformOutput', false);
