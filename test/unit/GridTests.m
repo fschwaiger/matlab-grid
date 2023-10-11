@@ -640,6 +640,16 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(b.Dims, ["a", "b", "c", "f", "e", "d"]);
         end
 
+        function it_can_be_extended_with_nonscalar_iterator(test)
+            a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]);
+            
+            b = test.verifyWarning(@() extend(a, "d", [1; 2; 3]), 'grid:ColumnIterator');
+            
+            test.verifyEqual(b.Data, ones(3, 3, 3, 1));
+            test.verifyEqual(b.Iter, {1:3, 1:3, 1:3, (1:3)'});
+            test.verifyEqual(b.Dims, ["a", "b", "c", "d"]);
+        end
+
         function it_can_be_extended_in_sparse_mode_to_produce_same_dense_grid(test)
             a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]).sparse();
             b = extend(a, "f", 1:3, "e", 1:3, "d", 1:3).dense();

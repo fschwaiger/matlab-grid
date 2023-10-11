@@ -14,11 +14,11 @@ function self = extend(self, dims, iter)
 
     arguments (Repeating)
         dims (1,1) string
-        iter (1,:)
+        iter (:,:)
     end
 
     with = containers.Grid(nan, iter, [dims{:}]);
-    nIter = cellfun(@numel, with.Iter);
+    nIter = cellfun(@(it) size(it, 2), with.Iter);
 
     assert(isempty(intersect(with.Dims, self.Dims)), "grid:InvalidInput", ...
         "Cannot extend the grid onto existing dimensions.");
