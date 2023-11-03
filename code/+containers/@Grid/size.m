@@ -28,7 +28,7 @@ function varargout = size(self, dims)
         names = self.Dims;
         for k = 1:numel(s)
             iter = unique(transpose([self.Iter.(names(k))]), 'rows');
-            miss = all(ismissing(iter), 1);
+            miss = all(ismissing(iter), 2);
             s(k) = size(iter, 1) - sum(miss) + any(miss);
         end
     end

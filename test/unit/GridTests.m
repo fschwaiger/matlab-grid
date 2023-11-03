@@ -1053,11 +1053,27 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(iter, struct("b", 1));
         end
 
+        function it_can_squeeze_out_singular_dimensions_with_nonscalar_iter(test)
+            test.applyFixture(matlab.unittest.fixtures.SuppressedWarningsFixture("grid:ColumnIterator"));
+            [grid, iter] = makegrid(1, {1:3, [1; 2], 1:4}, ["a", "b", "c"]).squeeze();
+            test.verifyEqual(size(grid), [3, 4]);
+            test.verifyEqual(grid.Dims, ["a", "c"]);
+            test.verifyEqual(iter, struct("b", [1; 2]));
+        end
+
         function it_can_squeeze_out_singular_dimensions_sparse(test)
             [grid, iter] = makegrid(1, {1:3, 1:1, 1:4}, ["a", "b", "c"]).sparse().squeeze();
             test.verifyEqual(size(grid), [3, 4]);
             test.verifyEqual(grid.Dims, ["a", "c"]);
             test.verifyEqual(iter, struct("b", 1));
+        end
+
+        function it_can_squeeze_out_singular_dimensions_sparse_with_nonscalar_it(test)
+            test.applyFixture(matlab.unittest.fixtures.SuppressedWarningsFixture("grid:ColumnIterator"));
+            [grid, iter] = makegrid(1, {1:3, [1; 2], 1:4}, ["a", "b", "c"]).sparse().squeeze();
+            test.verifyEqual(size(grid), [3, 4]);
+            test.verifyEqual(grid.Dims, ["a", "c"]);
+            test.verifyEqual(iter, struct("b", [1; 2]));
         end
 
         function it_can_squeeze_out_singular_nan_dimensions_sparse(test)
