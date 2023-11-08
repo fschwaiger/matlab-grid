@@ -22,7 +22,9 @@ function [self, const] = squeeze(self)
     else
         fixed = size(self) == 1;
         const = cell2struct(iter(fixed), dims(fixed), 2);
-        self = collapse(self, fixed, @(v) v);
+        self.Data = squeeze(self.Data);
+        self.Iter = self.Iter(not(fixed));
+        self.Dims = self.Dims(not(fixed));
     end
 end
 
