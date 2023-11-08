@@ -16,6 +16,10 @@ The key benefit of using the grid class lies in the vast amount of transformatio
 ```matlab
 envelope1 = makegrid(true, {0:1000:10000, 0:50:200}, {'alt_ft', 'v_kts'});
 envelope2 = makegrid([true, false], {["up", "dn"]}, {'gear'});
+envelope3 = makegrid(true, {
+    'alt_ft', 0:1000:1000
+    'v_kts',  0:50:200
+})
 
 envelope1.union(envelope2, @or, false)
     .filter(true) ...
@@ -31,12 +35,12 @@ The whole alphabetical list of grid operations is:
 
 |                                        |                                       |                                        |                                        |                                         |
 |----------------------------------------|---------------------------------------|----------------------------------------|----------------------------------------|-----------------------------------------|
-| [()](#grid-slicing)                    | [{}](#grid-slicing)                   | [collapse](#grid-form-transformations) | [iscompatible](#grid-analysis)           | [contains](#grid-analysis)              |
+| [()](#grid-slicing)                    | [{}](#grid-slicing)                   | [collapse](#grid-form-transformations) | [iscompatible](#grid-analysis)         | [contains](#grid-analysis)              |
 | [dense](#sparse-and-dense-grids)       | [distributed](#grid-parallelisation)  | [each](#grid-utilities)                | [every](#grid-analysis)                | [except](#grid-content-transformations) |
 | [extend](#grid-form-transformations)   | [filter](#grid-form-transformations)  | [find](#grid-utilities)                | [first](#grid-utilities)               | [gather](#grid-parallelisation)         |
 | [size](#grid-analysis)                 | [intersect](#grid-joins)              | [issparse](#sparse-and-dense-grids)    | [join](#grid-joins)                    | [last](#grid-utilities)                 |
 | [loadgrid](#grid-utilities)            | [makegrid](#grid-utilities)           | [map](#grid-content-transformations)   | [ndims](#grid-analysis)                | [numel](#grid-analysis)                 |
-| [only](#grid-content-transformations)  | [union](#grid-joins)              | [partition](#grid-parallelisation)     | [permute](#grid-form-transformations)  | [pipe](#grid-utilities)                 |
+| [only](#grid-content-transformations)  | [union](#grid-joins)                  | [partition](#grid-parallelisation)     | [permute](#grid-form-transformations)  | [pipe](#grid-utilities)                 |
 | [pluck](#grid-content-transformations) | [reject](#grid-form-transformations)  | [retain](#grid-form-transformations)   | [save](#grid-utilities)                | [savegrid](#grid-utilities)             |
 | [slice](#grid-slicing)                 | [sort](#grid-form-transformations)    | [sparse](#sparse-and-dense-grids)      | [struct](#grid-utilities)              | [at](#grid-slicing)                     |
 
@@ -47,14 +51,14 @@ The following sections provide an overview. For detailed help, use `help contain
 
 ## Grid Slicing
 
-Just like within a `table`, you can subreference a grid **by index** or **by label**. The return value depends on your use of the operator. To index by iterator value, use:
+Just like within a `table`, you can subreference a grid **by index** or **by label**. The return value depends on your use of the operator. To index by numerical indices, use:
 
 ```matlab
-grid(1000, 50:50:100, "up") % returns a sub-grid
-grid{1000, 50:50:100, "up"} % returns a sub-matrix
+grid(2, 2:3, 1) % returns a sub-grid
+grid{2, 2:3, 1} % returns a sub-matrix
 ```
 
-To index by iterator index, independent of its value:
+You can also use the following functional syntax:
 
 ```matlab
 grid.slice(2, 2:3, 1)      % returns a sub-grid
@@ -67,14 +71,14 @@ You can also index by key / value pair (the order does not matter):
 grid("alt_ft", 1000, "gear", "up", "v_kts", 50:50:100)
 ```
 
-You can also select individual iterators:
+You can also select individual iterators, providing a struct array:
 
 ```matlab
 iter = struct("alt_ft", 1000, "v_kts", 50, "gear", "up");
 grid(iter)
 ```
 
-You can select values via logical mask:
+You can select values via logical mask - the output might be a sparse grid:
 
 ```matlab
 mask = grid.Data == 42;
@@ -97,7 +101,7 @@ data = grid.at(42)
 All these subreferencing operations are applicable to assignments as well. Use `()` to insert a sub-grid and `{}` to insert data.
 
 ```matlab
-grid{1000, 50:50:100, "up"} = repmat(true, [1, 3, 1])
+grid{2, 2:3, 1} = repmat(true, [1, 2, 1])
 grid{"alt_ft", 1000, "gear", "up", "v_kts", 100} = false
 grid{struct("alt_ft", 0, "v_kts", 50, "gear", "up")} = true
 grid{grid.Data == 42} = 43
