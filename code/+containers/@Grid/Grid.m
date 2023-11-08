@@ -241,24 +241,15 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                 self.Iter = reshape(value, 1, []);
             else
                 self.Iter = reshape(value, [], 1);
+                dims = transpose(string(fieldnames(value)));
+                if not(isequal(dims, self.Dims))
+                    self.Dims = dims; %#ok
+                end
             end
         end
 
         function self = set.Dims(self, value)
-            if issparse(self)
-                self.Iter = cell2struct(struct2cell(self.Iter), value); %#ok
-                self.Dims = strings(1, 0);
-            else
-                self.Dims = value;
-            end
-        end
-
-        function value = get.Dims(self)
-            if issparse(self)
-                value = transpose(string(fieldnames(self.Iter)));
-            else
-                value = self.Dims;
-            end
+            self.Dims = string(reshape(value, 1, []));
         end
 
         function data = saveobj(self)
@@ -504,6 +495,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         %#release include file private/subs2args.m
         
         %#release include file private/values2indices.m
+        
+        %#release include file private/isMethodOrProp.m
     end
 end
 

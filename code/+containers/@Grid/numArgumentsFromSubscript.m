@@ -4,7 +4,7 @@ function n = numArgumentsFromSubscript(self, s, indexingContext)
     s1t = s(1).type;
     s1s = s(1).subs;
     
-    if s1t == "." && (s1s == "Data" || s1s == "Iter" || s1s == "Dims" || s1s == "User" || ismethod(self, s1s))
+    if s1t == "." && isMethodOrProp(self, s1s)
         % if it is a property or method, we do not output vararg
         n = builtin('numArgumentsFromSubscript', self, s, indexingContext);
         return

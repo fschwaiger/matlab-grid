@@ -1103,12 +1103,6 @@ classdef GridTests < AbstractTestCase
             test.verifyError(@() makegrid(1, {1:3, [1, nan, nan]}), "grid:InvalidInput");
             test.verifyError(@() makegrid(1, {1:3, ["1", nan, nan]}), "grid:InvalidInput");
         end
-
-        function it_can_rename_dims_in_sparse_mode_on_dims_prop(test)
-            grid = makegrid(1, {1:3, 1:4}, ["a", "b"]).sparse();
-            grid.Dims = ["c", "d"];
-            test.verifyEqual(fieldnames(grid.Iter), {'c'; 'd'});
-        end
         
         function it_assigns_struct_field_correctly(test)
             grid = makegrid(struct('a', {1, 2; 1, 2}, 'b', {4, 4; 5, 5}));
