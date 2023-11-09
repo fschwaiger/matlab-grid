@@ -30,8 +30,14 @@ function self = slice(self, varargin)
         return
     end
 
+    subs = args;
+    if isscalar(args) && isnumeric(args{1})
+        subs = cell(1, numel(dims));
+        [subs{:}] = ind2sub(size(self), args{1});
+    end
+
     % slice the iterators independently, each one according to the respective indexer
-    self.Iter = cellfun(@(iter, arg) iter(:, arg), self.Iter, args, 'Uniform', false);
+    self.Iter = cellfun(@(iter, subscript) iter(:, subscript), self.Iter, subs, 'Uniform', false);
 
     % slice the data according to the given indices
     self.Data = self.Data(args{:});

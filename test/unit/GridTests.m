@@ -165,6 +165,10 @@ classdef GridTests < AbstractTestCase
 
         function it_can_subsasgn_data(test)
             grid = containers.Grid(struct("a", {1,2;3,4}), {1:2, 3:4});
+            grid{3}.a = 42;
+            test.verifyEqual(grid.pluck("a").Data, [1,42;3,4]);
+
+            grid = containers.Grid(struct("a", {1,2;3,4}), {1:2, 3:4});
             grid{1, 2}.a = 42;
             test.verifyEqual(grid.pluck("a").Data, [1,42;3,4]);
 
