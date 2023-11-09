@@ -72,6 +72,7 @@ function varargout = map(self, varargin)
     function it = iterator(k)
         subs = cell(1, nDims);
         [subs{:}] = ind2sub(sz, k);
+        it = struct();
         for iDim = 1:nDims
             it.(dims(iDim)) = iter{iDim}(:, subs{iDim});
         end
