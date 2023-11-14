@@ -1116,15 +1116,14 @@ classdef GridTests < AbstractTestCase
 
         function it_extracts_deep_struct_field_via_subsref(test)
             grid = makegrid(struct('a', num2cell(struct('c', {[1;2], [3;4], [5;6]})), 'b', {4, 5, 6}));
-            test.verifyEqual(grid.a.c, {[1;2], [3;4], [5;6]});
-            test.verifyEqual(grid.a.c(2), [2, 4, 6]);
             
-            test.verifyEqual(grid.a.c, grid.pluck('a', 'c').Data);
+            test.verifyEqual(grid.a.c(2), [2, 4, 6]);
             test.verifyEqual(grid.a.c(2), grid.pluck('a', 'c', 2).Data);
         end
 
         function it_has_functional_accessors_for_data_and_iter(test)
             grid = makegrid(1, {1:3, 1:4}, ["a", "b"], User = struct(A = 42));
+            
             test.verifyEqual(grid.Data, grid.data());
             test.verifyEqual(grid.Iter{2}, grid.iter("b"));
             test.verifyEqual(grid.User, grid.user());

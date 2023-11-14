@@ -30,14 +30,8 @@ function varargout = subsref(self, s)
             [varargout{1:nargout}] = subsref(varargout{:}, s(2:end));
         end
     else
-        % the following line showed 2ms in the performance test case
-        % pro: most flexible, con: slow
-        %[varargout{1:nargout}] = map(self, @(d) subsref(d, s));
-
-        % while the following implementation shows 0.8ms
-        % pro: fast, con: syntax is limited to struct and array indexing
-        args = arrayfun(@(ss) ss.subs, s, 'UniformOutput', false);
-        [varargout{1:nargout}] = pluck(self, args{:}).Data;
+        % apply the subsref to each grid point and collect the results
+        [varargout{1:nargout}] = map(self, @(d) subsref(d, s)).Data;
     end
 end
 
