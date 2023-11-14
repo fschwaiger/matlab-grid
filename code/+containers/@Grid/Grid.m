@@ -16,45 +16,48 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   User  -  User-defined properties.
     %
     % Grid methods:
+    %   applyTo       -  Adds the iterations from the grid to a simulink test case.
     %   assign        -  Assigns values of other grid to self.
     %   at            -  Returns data and iterator struct at linear index k.
-    %   applyTo       -  Adds the iterations from the grid to a simulink test case.
     %   collapse      -  Removes dimensions from the grid using a reducer.
     %   contains      -  Returns whether it contains the given value (at iterator).
-    %   distributed   -  Distributes the data across parallel workers.
+    %   data          -  Gets or sets the data of the object.
     %   dense         -  Reconstructs a rectangular grid from sparse iterator list.
+    %   distributed   -  Distributes the data across parallel workers.
     %   each          -  Alias for map() with no output arguments.
     %   every         -  True, if @fcn evaluates true for all data points.
-    %   extend        -  Adds grid dimensions and iterators, repeating data.
     %   except        -  Rejects fields from a struct-valued grid.
+    %   extend        -  Adds grid dimensions and iterators, repeating data.
     %   filter        -  Filters the grid using a closure, the result is again a grid.
     %   find          -  Finds and returns data where fcn is true.
     %   first         -  Returns the first element where fcn is true.
     %   gather        -  Collects distributed data from parallel workers.
-    %   size          -  Like size(), but does not cut off trailing dims.
     %   intersect     -  The common subspace of two or more grids.
     %   iscompatible  -  Tests two grids for compatible iterators and dimensions.
     %   isempty       -  Returns true iff any iterator is empty.
     %   issparse      -  Returns true if this grid is a sparse grid.
+    %   iter          -  Gets or sets the iter of the object by name.
     %   last          -  Returns the last element where fcn is true.
     %   map           -  Transforms the grid(s) into (a) new one(s).
     %   ndims         -  Returns the number of grid dimensions.
     %   numel         -  Returns number of grid iterations.
     %   only          -  Keeps only given fields from a struct-valued grid.
-    %   union         -  The combined superspace of two or more grids.
     %   partition     -  Splits grid into multiple parts.
     %   permute       -  Reorders grid dimensions.
     %   pipe          -  Pipes the grid through the given function handle.
     %   pluck         -  Extracts values from a given struct field into a new grid.
     %   reject        -  Inverse of filter(), rejects entries.
     %   retain        -  Reduces the grid to given dimensions using a reducer.
-    %   slice         -  Extracts a subspace from this grid using indices or masks.
     %   sample        -  Reduce the grid to k random samples.
     %   save          -  Saves the grid to the given filename.
+    %   size          -  Like size(), but does not cut off trailing dims.
+    %   slice         -  Extracts a subspace from this grid using indices or masks.
     %   sort          -  Sorts the grid dimensions and iterators.
     %   sparse        -  Flattens the grid so it has a single struct iterator.
     %   squeeze       -  Drops dimensions with scalar iterators.
     %   struct        -  Serializes data to be shared in a MAT file.
+    %   union         -  The combined superspace of two or more grids.
+    %   user          -  Gets or sets custom user data on the grid.
     %   vec           -  Vectorized map() function.
     %   where         -  Filters the grid using a value, the result is again a grid.
     %
@@ -383,7 +386,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = applyTo(self, testCase, options);
         self = collapse(self, dims, reduceFcn);
         [tf, index] = contains(self, value);
-        self = data(self, varargin);
+        self = data(self, data);
         self = dense(self, default);
         self = distributed(self);
         self = each(self, varargin);

@@ -1,5 +1,5 @@
 function self = user(self, varargin)
-    % Function get and set accessor for custom user data.
+    % Gets or sets custom user data on the grid.
     %
     %   data = grid.user()
     %   grid = grid.user(data)
@@ -15,7 +15,7 @@ function self = user(self, varargin)
         self.User = varargin{1};
     else
         for k = 1:2:length(varargin)
-            self.User.(varargin{k}) = varargin{k+1};
+        self.User.(varargin{k}) = varargin{k+1};
         end
     end
 end
