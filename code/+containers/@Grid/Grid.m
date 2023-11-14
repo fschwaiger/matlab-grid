@@ -241,10 +241,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
                 self.Iter = reshape(value, 1, []);
             else
                 self.Iter = reshape(value, [], 1);
-                dims = transpose(string(fieldnames(value)));
-                if not(isequal(dims, self.Dims))
-                    self.Dims = dims; %#ok
-                end
+                self.Dims = transpose(string(fieldnames(value))); %#ok
             end
         end
 
@@ -294,6 +291,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
         %#release include file contains.m
 
+        %#release include file data.m
+
         %#release include file dense.m
 
         %#release include file distributed.m
@@ -323,6 +322,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         %#release include file isempty.m
 
         %#release include file issparse.m
+
+        %#release include file iter.m
 
         %#release include file last.m
 
@@ -368,6 +369,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
         %#release include file union.m
 
+        %#release include file user.m
+
         %#release include file vec.m
 
         %#release include file where.m
@@ -380,6 +383,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = applyTo(self, testCase, options);
         self = collapse(self, dims, reduceFcn);
         [tf, index] = contains(self, value);
+        self = data(self, varargin);
         self = dense(self, default);
         self = distributed(self);
         self = each(self, varargin);
@@ -395,6 +399,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         [isCompatible, areCompatible] = iscompatible(self, varargin);
         tf = isempty(self);
         tf = issparse(self);
+        self = iter(self, varargin);
         [data, iter] = last(self, fcn);
         varargout = map(self, varargin);
         n = ndims(self);
@@ -417,6 +422,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         varargout = subsref(self, s);
         self = subsasgn(self, s, varargin)
         self = union(self, with, joinFcn, missingSelf, missingWith);
+        self = user(self, varargin);
         varargout = vec(self, varargin);
         self = where(self, value);
     end

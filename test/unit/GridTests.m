@@ -1122,5 +1122,16 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid.a.c, grid.pluck('a', 'c').Data);
             test.verifyEqual(grid.a.c(2), grid.pluck('a', 'c', 2).Data);
         end
+
+        function it_has_functional_accessors_for_data_and_iter(test)
+            grid = makegrid(1, {1:3, 1:4}, ["a", "b"], User = struct(A = 42));
+            test.verifyEqual(grid.Data, grid.data());
+            test.verifyEqual(grid.Iter{2}, grid.iter("b"));
+            test.verifyEqual(grid.User, grid.user());
+
+            test.verifyEqual(grid.data(zeros(3, 4)).data(), zeros(3, 4));
+            test.verifyEqual(grid.iter("b", 6:9).iter(), {1:3, 6:9});
+            test.verifyEqual(grid.user(A = 43).user().A, 43);
+        end
     end
 end
