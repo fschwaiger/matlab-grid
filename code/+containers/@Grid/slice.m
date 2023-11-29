@@ -6,11 +6,18 @@ function self = slice(self, varargin)
     %
     % See also containers.Grid/partition
 
+    % this line does the magic of supporting all kinds of indexing
     args = subs2args(self, varargin);
+    dims = 1:ndims(self);
+    nDim = numel(dims);
+    
+    % empty grid
+    if nDim == 0
+        return
+    end
 
-    if isscalar(args) && islogical(args{1}) && ndims(self) > 1
+    if isscalar(args) && islogical(args{1}) && nDim > 1
         % cache set of all dimensions iterator
-        dims = 1:ndims(self);
         mask = args{1};
 
         % cell of logical masks for all dimensions
@@ -23,23 +30,18 @@ function self = slice(self, varargin)
         end
     end
 
-    if issparse(self) || (isscalar(args) && ndims(self) > 1)
+    % sparse grid can already do a linear index
+    if issparse(self) || (isscalar(args) && nDim > 1) 
         self = sparse(self);
         self.Iter = self.Iter(args{:});
         self.Data = self.Data(args{:});
         return
     end
 
-    subs = args;
-    if isscalar(args) && isnumeric(args{1})
-        subs = cell(1, numel(dims));
-        [subs{:}] = ind2sub(size(self), args{1});
-    end
+    % slice each iterator according to the index in its own dimension
+    self.Iter = cellfun(@(iter, subscript) iter(:, subscript), self.Iter, args, 'Uniform', false);
 
-    % slice the iterators independently, each one according to the respective indexer
-    self.Iter = cellfun(@(iter, subscript) iter(:, subscript), self.Iter, subs, 'Uniform', false);
-
-    % slice the data according to the given indices
+    % slice the data according to the given indices, in n-D this keeps the shape
     self.Data = self.Data(args{:});
 end
 
