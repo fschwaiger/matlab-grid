@@ -3,6 +3,17 @@ include:
     file: ci-toolbox.yml
 
 variables:
-  RELEASE_INCLUDE: "code,demo,resources,*.prj,*.md,CHANGELOG,MANUAL.pdf"
-  RELEASE_EXCLUDE: ".git*,.DS_Store,*.mlapp,resources/pandoc,resources/scripts"
+  RELEASE_TEMPDIR: "fschwaiger-matlab-grid-${CI_COMMIT_TAG}"
+  RELEASE_INCLUDE: "code,LICENSE.md,README.md,resources/project,Grid.prj,test/unit"
+  RELEASE_EXCLUDE: "test/unit/ReleaseTests.m"
   MATLAB_VERSION: 2021a
+
+# disable the compilation of a manual pdf, we do not have any
+release:manual:
+  extends: .release:manual
+  rules: [when: never]
+
+# if above job is not created, remove it from the dependencies
+release:matlab:
+  extends: .release:matlab
+  needs: []
