@@ -33,16 +33,20 @@ envelope1.union(envelope2, @or, false)
 
 The whole alphabetical list of grid operations is:
 
-|                                        |                                       |                                        |                                        |                                         |
-|----------------------------------------|---------------------------------------|----------------------------------------|----------------------------------------|-----------------------------------------|
-| [()](#grid-slicing)                    | [{}](#grid-slicing)                   | [collapse](#grid-form-transformations) | [iscompatible](#grid-analysis)         | [contains](#grid-analysis)              |
-| [dense](#sparse-and-dense-grids)       | [distributed](#grid-parallelisation)  | [each](#grid-utilities)                | [every](#grid-analysis)                | [except](#grid-content-transformations) |
-| [extend](#grid-form-transformations)   | [filter](#grid-form-transformations)  | [find](#grid-utilities)                | [first](#grid-utilities)               | [gather](#grid-parallelisation)         |
-| [size](#grid-analysis)                 | [intersect](#grid-joins)              | [issparse](#sparse-and-dense-grids)    | [join](#grid-joins)                    | [last](#grid-utilities)                 |
-| [loadgrid](#grid-utilities)            | [makegrid](#grid-utilities)           | [map](#grid-content-transformations)   | [ndims](#grid-analysis)                | [numel](#grid-analysis)                 |
-| [only](#grid-content-transformations)  | [union](#grid-joins)                  | [partition](#grid-parallelisation)     | [permute](#grid-form-transformations)  | [pipe](#grid-utilities)                 |
-| [pluck](#grid-content-transformations) | [reject](#grid-form-transformations)  | [retain](#grid-form-transformations)   | [save](#grid-utilities)                | [savegrid](#grid-utilities)             |
-| [slice](#grid-slicing)                 | [sort](#grid-form-transformations)    | [sparse](#sparse-and-dense-grids)      | [struct](#grid-utilities)              | [at](#grid-slicing)                     |
+|   |   |   |   |   |
+|---|---|---|---|---|
+| [`(@fcn)`](#grid-slicing) | [`(i1, i2, ...)`](#grid-slicing) | [`(index)`](#grid-slicing) | [`(key = v1, ...)`](#grid-slicing) | [`(mask)`](#grid-slicing) |
+| [`{@fcn}`](#grid-slicing) | [`{i1, i2, ...}`](#grid-slicing) | [`{index}`](#grid-slicing) | [`{key = v1, ...}`](#grid-slicing) | [`{mask}`](#grid-slicing) |
+| [`applyTo`](#grid-utilities) | [`assign`](#grid-slicing) | [`at`](#grid-slicing) | [`collapse`](#grid-form-transformations) | [`contains`](#grid-analysis) |
+| [`data`](#grid-utilities) | [`dense`](#sparse-and-dense-grids) | [`distributed`](#grid-parallelisation) | [`each`](#grid-utilities) | [`every`](#grid-analysis) |
+| [`except`](#grid-content-transformations) | [`extend`](#grid-form-transformations) | [`filter`](#grid-form-transformations) | [`find`](#grid-utilities) | [`first`](#grid-utilities) |
+| [`gather`](#grid-parallelisation) | [`intersect`](#grid-joins) | [`iscompatible`](#grid-analysis) | [`isempty`](#grid-utilities) | [`issparse`](#sparse-and-dense-grids) |
+| [`iter`](#grid-utilities) | [`join`](#grid-joins) | [`last`](#grid-utilities) | [`loadgrid`](#grid-utilities) | [`makegrid`](#grid-utilities) |
+| [`map`](#grid-content-transformations) | [`ndims`](#grid-analysis) | [`numel`](#grid-analysis) | [`only`](#grid-content-transformations) | [`partition`](#grid-parallelisation) |
+| [`permute`](#grid-form-transformations) | [`pipe`](#grid-utilities) | [`pluck`](#grid-content-transformations) | [`reject`](#grid-form-transformations) | [`retain`](#grid-form-transformations) |
+| [`save`](#grid-utilities) | [`savegrid`](#grid-utilities) | [`size`](#grid-analysis) | [`slice`](#grid-slicing) | [`sort`](#grid-form-transformations) |
+| [`sparse`](#sparse-and-dense-grids) | [`squeeze`](#grid-form-transformations) | [`struct`](#grid-utilities) | [`user`](#grid-utilities) | [`union`](#grid-joins) |
+| [`vec`](#grid-content-transformations) | [`where`](#grid-slicing) | | | |
 
 The grid class is inspired by [Laravel Collections](https://laravel.com/docs/9.x/collections).
 
@@ -98,7 +102,8 @@ data = grid.at(42)
 [data, iter] = grid.at(42)
 ```
 
-All these subreferencing operations are applicable to assignments as well. Use `()` to insert a sub-grid and `{}` to insert data.
+All these subreferencing operations are applicable to assignments as well.
+Use `()` to insert a sub-grid and `{}` to insert data.
 
 ```matlab
 grid{2, 2:3, 1} = repmat(true, [1, 2, 1])
@@ -108,10 +113,39 @@ grid{grid.Data == 42} = 43
 grid{@(x) x == 42} = 43
 ```
 
+You can reduce the size of the grid by `filter()`ing certain values by function handle:
+
+```matlab
+grid.filter(@(x) x == 42)
+grid.filter(@not) % to search for 0
+```
+
+The result of the `filter()` andoperation may or may not be sparse.
+See [Sparse and Dense Grids] for more information.
+The follow-up operations you can chain is not affected.
+`reject()` is the logical opposite of `filter()`.
+Both command achieve the same:
+
+```matlab
+grid.reject(nan)
+grid.reject(@isnan)
+```
+
+You can filter the grid by object property or struct field (all options are equivalent):
+
+```matlab
+grid = makegrid(struct("Success", {true, false, true}), {1:3}, ["A"])
+grid(".Success", true)
+grid{".Success", true}
+grid.slice(".Success", true)
+grid.where(Success = true)
+grid(@(v) v.Status == true)
+```
+
 
 ## Grid Form Transformations
 
-The following operations transform the dimensionality of grids: `collapse()`, `extend()`, `retain()`, `sort()`, `permute()`, `filter()`, and `reject()`.
+The following operations transform the dimensionality of grids: `collapse()`, `extend()`, `retain()`, `sort()`, and `permute()`.
 
 You can reduce an $n$-dimensional grid to a $k$-dimensional grid using either `collapse()` (to specify $n-k$ dimensions to remove) or `retain()` (to specify all other $k$ dimensions). The first argument is the (list of) dimension(s) to collapse or retain, the second argument a reduction function that produces a scalar result from arrays or matrices of data:
 
@@ -138,22 +172,6 @@ You can also manually `permute()` dimensions (though, not iterators):
 
 ```matlab
 grid = grid.permute(["v_kts", "gear", "alt_ft"])
-```
-
-You can reduce the size of the grid by `filter()`ing certain values by function handle:
-
-```matlab
-grid.filter(@(x) x == 42)
-grid.filter(@not) % to search for 0
-```
-
-The result of the `filter()` operation may or may not be sparse. See [Sparse and Dense Grids] for more information. The follow-up operations you can chain is not affected.
-
-Finally, `reject()` is the logical opposite of `filter()`. Both command achieve the same:
-
-```matlab
-grid.reject(nan)
-grid.reject(@isnan)
 ```
 
 
@@ -195,17 +213,27 @@ grid.map(@(s) s.Status)
 
 This section contains a list of operations that might be useful utilities:
 
-- `struct()` removes the class interface from the grid data, so you can serialize it to a MAT file more easily.
-- `first(@fcn)` returns a single element, if found based on function `@fcn`.
-- `last(@fcn)` returns a single element, if found based on function `@fcn`.
-- `find()` is like `filter()`, but returns the result data instead.
+- `assign()` replaces the whole grid (useful for method chaining).
+- `collect()` builds 1-dimensional grids from arrays.
+- `data()` returns the data of a grid.
+- `data(data)` writes data to the grid.
 - `each()` is like `map()`, but the mapping function has no outputs.
+- `find()` is like `filter()`, but returns the result data instead.
+- `first(@fcn)` returns a single element, if found based on function `@fcn`.
+- `isempty()` returns true if and only if the grid contains no data.
+- `iter()` returns the iterator values of a grid as a struct array.
+- `iter(dim = iter)` writes a specific iterator to the grid.
+- `iter(iter)` writes iterator values to the grid.
+- `last(@fcn)` returns a single element, if found based on function `@fcn`.
+- `loadgrid()` is the logical opposite to `savegrid()`.
+- `makegrid()` is a functional alias for the constructor `containers.Grid`.
 - `pipe()` is for functional programming, to provide your own operation.
 - `save()` is for saving to mat file (you can continue chaining operations after this).
-- `makegrid()` is a functional alias for the constructor `containers.Grid`.
-- `collect()` builds 1-dimensional grids from arrays.
 - `savegrid()` is the functional counterpart to `save()`.
-- `loadgrid()` is the logical opposite to `savegrid()`.
+- `struct()` removes the class interface from the grid data, so you can serialize it to a MAT file more easily.
+- `user()` returns the user data of a grid.
+- `user(key = value)` writes user data to the grid, assuming `grid.User` is a struct.
+- `user(user)` writes user data to the grid.
 
 For more information, run `help containers.Grid/funcname`.
 
