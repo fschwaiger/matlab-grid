@@ -427,7 +427,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = union(self, with, joinFcn, missingSelf, missingWith);
         self = user(self, varargin);
         varargout = vec(self, varargin);
-        self = where(self, value);
+        self = where(self, keyOrValue, value);
     end
 
     methods (Static)
