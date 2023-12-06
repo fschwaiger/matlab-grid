@@ -499,7 +499,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     methods (Access = private)
         %#release include file private/fields2indices.m
         
-        %#release include file private/struct2mask.m
+        %#release include file private/struct2args.m
         
         %#release include file private/subs2args.m
         

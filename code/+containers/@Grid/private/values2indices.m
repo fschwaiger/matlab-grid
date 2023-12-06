@@ -2,17 +2,38 @@ function indices = values2indices(self, values)
     % convert values into index arrays by search
 
     iter = self.Iter;
-    assert(numel(values) == numel(iter), "grid:InvalidInput", ...
+    dims = self.Dims;
+    assert(numel(values) == numel(dims), "grid:InvalidInput", ...
         "Number of slice values must match number of grid dimensions.");
-    indices = cellfun(@findorall, iter, values, 'UniformOutput', false);
 
-    function indices = findorall(iter, values)
+    if issparse(self)
+        indices = cellfun(@findorallsparse, dims, values, 'Uniform', 0);
+        for k = 2:numel(indices)
+            indices{1} = intersect(indices{1}, indices{k});
+        end
+        indices = indices(1);
+    else
+        indices = cellfun(@findorall, iter, values, 'Uniform', 0);
+    end
+    
+    function indices = findorallsparse(d, v)
         % either finds the value in 'iter', or specifies all with ':'
 
-        if ischar(values) && strcmp(values, ':')
+        assert(iscolumn(v), "grid:InvalidInput", ...
+            "Sparse grids can only be sliced with a single value per dimension.");
+        assert(not(isequal(v, ':')), "grid:InvalidInput", ...
+            "Sparse grids dimensions cannot be sliced with ':'.");
+
+        indices = findnaneq([iter.(d)], v);
+    end
+
+    function indices = findorall(it, v)
+        % either finds the value in 'it', or specifies all with ':'
+
+        if ischar(v) && strcmp(v, ':')
             indices = ':';
         else
-            indices = arrayfun(@(k) findnaneq(iter, values(:, k)), 1:size(values, 2));
+            indices = arrayfun(@(k) findnaneq(it, v(:, k)), 1:size(v, 2));
         end
     end
 

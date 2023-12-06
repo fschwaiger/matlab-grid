@@ -1139,13 +1139,13 @@ classdef GridTests < AbstractTestCase
             test.assertTrue(evidence.issparse());
             
             % Indexing using iterStruct is working when envelope grid is dense AND evidence grid is sparse
-            plots = envelope(evidence.Iter);
-            test.verifyTrue(iscompatible(plots, evidence));
+            plots1 = envelope(evidence.Iter);
+            test.verifyTrue(iscompatible(plots1, evidence));
             
             % Indexing using iterStruct is NOT working when envelope grid is sparse
             envelopeSparse = envelope.sparse();
-            plots = envelopeSparse(evidence.Iter);
-            test.verifyTrue(iscompatible(plots, evidence));
+            plots2 = envelopeSparse(evidence.Iter);
+            test.verifyEqual(plots1, plots2);
         end
     end
 end
