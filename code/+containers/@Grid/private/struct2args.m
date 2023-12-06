@@ -1,4 +1,4 @@
-function mask = struct2mask(self, values)
+function mask = struct2args(self, values)
     % convert values into index arrays by search
 
     dims = self.Dims;

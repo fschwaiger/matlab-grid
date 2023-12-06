@@ -7,7 +7,7 @@ function args = subs2args(self, subs)
         return
     elseif isstruct(subs{1})
         % select via struct: grid(struct_array)
-        args = {struct2mask(self, subs{1})};
+        args = {struct2args(self, subs{1})};
         return
     elseif islogical(subs{1})
         % select via mask: grid(mask)

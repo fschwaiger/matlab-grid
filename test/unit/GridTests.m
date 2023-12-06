@@ -1132,5 +1132,20 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid.iter("b", 6:9).iter(), {1:3, 6:9});
             test.verifyEqual(grid.user(A = 43).user().A, 43);
         end
+
+        function it_can_index_sparse_with_iter_array(test)
+            envelope = makegrid(0, {[-2,0,2,10],[-2,0,2],[-2,0,2],[0:100:100]}, {'u','v','w','h'});
+            evidence = envelope.sample(0.4);
+            test.assertTrue(evidence.issparse());
+            
+            % Indexing using iterStruct is working when envelope grid is dense AND evidence grid is sparse
+            plots1 = envelope(evidence.Iter);
+            test.verifyTrue(iscompatible(plots1, evidence));
+            
+            % Indexing using iterStruct is NOT working when envelope grid is sparse
+            envelopeSparse = envelope.sparse();
+            plots2 = envelopeSparse(evidence.Iter);
+            test.verifyEqual(plots1, plots2);
+        end
     end
 end
