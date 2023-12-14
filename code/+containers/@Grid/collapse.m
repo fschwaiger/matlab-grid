@@ -40,6 +40,22 @@ function self = collapse(self, dims, reduceFcn)
         dims = [dims{:}];
     end
 
+    % special solution to collapse singular dimensions, faster than arrayfun
+    if nargin < 3
+        assert(all(size(self, dims) == 1), "grid:InvalidUse", ...
+            "Cannot collapse dimensions with size > 1 without a reduction function.");
+
+        if issparse(self)
+            self.Iter = rmfield(self.Iter, self.Dims(dims));
+        else
+            self.Data = permute(self.Data, [setdiff(1:ndims(self), dims), dims]);
+            self.Iter(dims) = [];
+            self.Dims(dims) = [];
+        end
+
+        return
+    end
+
     % sparse solution
     if issparse(self)
         values = rmfield(self.Iter, self.Dims(dims));

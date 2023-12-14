@@ -254,6 +254,18 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(n, 20);
         end
 
+        function it_can_collapse_selected_singular_dims_without_fcn(test)
+            grid = containers.Grid(rand([5, 1, 5, 1, 3]));
+            grid = grid.collapse(["x2", "x4"]);
+            test.verifyEqual(size(grid), [5, 5, 3]);
+        end
+        
+        function it_can_collapse_selected_singular_dims_without_fcn_when_sparse(test)
+            grid = containers.Grid(rand([5, 1, 5, 1, 3])).sparse();
+            grid = grid.collapse(["x2", "x4"]);
+            test.verifyEqual(size(grid), [5, 5, 3]);
+        end
+
         function it_can_reduce_down_to_2D(test)
             grid = containers.Grid(rand(10, 10, 10, 10));
             grid = grid.retain([2, 3], @(x) mean(x, 'all'));
