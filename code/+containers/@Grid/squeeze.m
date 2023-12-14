@@ -25,6 +25,11 @@ function [self, const] = squeeze(self)
         self.Data = squeeze(self.Data);
         self.Iter = self.Iter(not(fixed));
         self.Dims = self.Dims(not(fixed));
+
+        % workaround for 2D matrix, which squeeze keeps as a row vector
+        if isrow(self.Data)
+            self.Data = transpose(self.Data);
+        end
     end
 end
 

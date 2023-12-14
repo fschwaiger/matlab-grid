@@ -1096,6 +1096,15 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(iter, struct("a", 1, "b", 1));
         end
 
+        function it_leaves_single_nonsingular_dimension_from_2d_in_dim_1(test)
+            [grid, iter] = makegrid(1, {1:1, 1:4}, ["a", "b"]).squeeze();
+            test.verifyEqual(size(grid), [4, 1]);
+            test.verifyEqual(size(grid.Data), [4, 1]);
+            test.verifyEqual(grid.Dims, "b");
+            test.verifyEqual(grid.Iter, {1:4});
+            test.verifyEqual(iter, struct("a", 1));
+        end
+
         function it_can_slice_by_value_in_struct_field(test)
             grid = makegrid(struct('a', {1, 2; 1, 2}, 'b', {4, 4; 5, 5}));
             grid = grid(".a", 2);
