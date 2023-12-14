@@ -3,12 +3,12 @@ function varargout = size(self, dims)
 
     arguments
         self
-        dims (1, :) double = 1:numel(self.Dims)
+        dims (1, :) double = 1:max(numel(self.Dims), 2)
     end
 
     if isempty(self.Dims)
         % work around error in case below if 2nd argument becomes empty
-        varargout = {zeros(1, 0)};
+        varargout = {zeros(1, 2)};
     elseif nargout < 2 && issparse(self)
         % the 2nd argument prevents removal of trailing scalar dimensions
         varargout = {sparsesize(dims)};
@@ -24,10 +24,11 @@ function varargout = size(self, dims)
     end
 
     function s = sparsesize(dims)
-        s = ones(1, numel(dims));
+        s = ones(size(dims));
         names = self.Dims;
-        for k = 1:numel(s)
-            iter = unique(transpose([self.Iter.(names(k))]), 'rows');
+        iters = self.Iter;
+        for k = find(dims <= numel(names))
+            iter = unique(transpose([iters.(names(dims(k)))]), 'rows');
             miss = all(ismissing(iter), 2);
             s(k) = size(iter, 1) - sum(miss) + any(miss);
         end

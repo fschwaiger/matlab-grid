@@ -207,7 +207,7 @@ classdef GridTests < AbstractTestCase
         function it_can_reduce_a_dimension_by_name(test)
             grid = containers.Grid(rand(30));
             grid = grid.collapse("x2", @mean);
-            test.verifyEqual(size(grid), 30);
+            test.verifyEqual(size(grid), [30, 1]);
         end
 
         function it_can_reduce_a_dimension_if_sparse(test)
@@ -219,19 +219,19 @@ classdef GridTests < AbstractTestCase
         function it_can_reduce_a_dimension(test)
             grid = containers.Grid(rand(30));
             grid = grid.collapse(2, @mean);
-            test.verifyEqual(size(grid), 30);
+            test.verifyEqual(size(grid), [30, 1]);
         end
 
         function it_can_reduce_a_dimension_by_logical_id(test)
             grid = containers.Grid(rand(30));
             grid = grid.collapse(grid.Dims == "x2", @mean);
-            test.verifyEqual(size(grid), 30);
+            test.verifyEqual(size(grid), [30, 1]);
         end
 
         function it_can_retain_a_dimension_by_logical_id(test)
             grid = containers.Grid(rand(30));
             grid = grid.retain(grid.Dims == "x2", @mean);
-            test.verifyEqual(size(grid), 30);
+            test.verifyEqual(size(grid), [30, 1]);
         end
 
         function it_can_reduce_a_dimension_changing_type(test)
@@ -1024,7 +1024,7 @@ classdef GridTests < AbstractTestCase
 
         function it_returns_empty_size_if_no_iterators(test)
             grid = makegrid();
-            test.verifyEqual(size(grid), zeros(1, 0));
+            test.verifyEqual(size(grid), zeros(1, 2));
         end
 
         function it_can_assign_size_to_nargout(test)
@@ -1085,6 +1085,15 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(size(grid), [3, 4]);
             test.verifyEqual(grid.Dims, ["a", "c"]);
             test.verifyEqual(iter, struct("b", nan));
+        end
+
+        function it_leaves_single_nonsingular_dimension_in_dim_1(test)
+            [grid, iter] = makegrid(1, {1:1, 1:1, 1:4}, ["a", "b", "c"]).squeeze();
+            test.verifyEqual(size(grid), [4, 1]);
+            test.verifyEqual(size(grid.Data), [4, 1]);
+            test.verifyEqual(grid.Dims, "c");
+            test.verifyEqual(grid.Iter, {1:4});
+            test.verifyEqual(iter, struct("a", 1, "b", 1));
         end
 
         function it_can_slice_by_value_in_struct_field(test)
