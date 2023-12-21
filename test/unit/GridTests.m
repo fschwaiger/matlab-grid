@@ -244,8 +244,7 @@ classdef GridTests < AbstractTestCase
 
         function it_can_collapse_multiple_dimensions(test)
             n = 0;
-            grid = containers.Grid(rand([5, 5, 5, 4]));
-            grid = grid.collapse(["x2", "x3"], @reduce);
+            containers.Grid(rand([5, 5, 5, 4])).collapse(["x2", "x3"], @reduce);
             function v = reduce(v)
                 test.verifySize(v, [1, 5, 5, 1]);
                 v = mean(v, 'all');
@@ -1178,6 +1177,11 @@ classdef GridTests < AbstractTestCase
             envelopeSparse = envelope.sparse();
             plots2 = envelopeSparse(evidence.Iter);
             test.verifyEqual(plots1, plots2);
+        end
+
+        function it_can_add_hint_for_map_function_nargin(test)
+            test.verifyError(@() map(makegrid(rand(5, 5)), makegrid(rand(5, 5)), @mean), "MATLAB:getdimarg:invalidDim");
+            test.verifyWarningFree(@() map(makegrid(rand(5, 5)), makegrid(rand(5, 5)), @mean, 1));
         end
     end
 end

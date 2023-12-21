@@ -2,10 +2,18 @@ function varargout = map(self, varargin)
     % Transforms (n) input grids into (m) output grids. All iterators must match.
     %
     %   grid = grid.map(mapFcn)
-    %   grid = grid.map(mapFcn, errorFcn)
+    %   grid = grid.map(mapFcn, nargin)
     %   [grid_1, ... grid_m] = map(grid_1, ... grid_n, mapFcn)
-    %   [grid_1, ... grid_m] = map(grid_1, ... grid_n, mapFcn, errorFcn)
+    %   [grid_1, ... grid_m] = map(grid_1, ... grid_n, mapFcn, nargin)
     %
+    % The hint for nargin is optional. If not specified, the number of input
+    % arguments is determined from the function handle. If specified, the number
+    % of input arguments must match the number of input grids. Use this for
+    % functions like `mean`, that have more than one input argument, but can
+    % operate on a single input:
+    %
+    %   grid = map(grid1, grid2, @mean, 1)
+    %   
     % See also containers.Grid
 
     % assign inputs
@@ -13,6 +21,11 @@ function varargout = map(self, varargin)
     grids = [{self}, varargin(other)];
     varargin = varargin(not(other));
     mapFcn = varargin{1};
+    if numel(varargin) > 1
+        nInputs = varargin{2};
+    else
+        nInputs = nargin(mapFcn);
+    end
 
     % can only operate on compatible grids
     assert(iscompatible(grids{:}), "grid:InvalidInput", ...
@@ -41,10 +54,10 @@ function varargout = map(self, varargin)
     % the Data property. We will replace it with the correct data later.
     self.Data = [];
 
-    if nargin(mapFcn) < numel(grids)
+    if nInputs < numel(grids)
         % with matrices, we can use arrayfun to cover all data points
         [varargout{1:nargout}] = arrayfun(@mapAsVector, grids{:});
-    elseif nargin(mapFcn) == numel(grids)
+    elseif nInputs == numel(grids)
         % with matrices, we can use arrayfun to cover all data points
         [varargout{1:nargout}] = arrayfun(mapFcn, grids{:});
     elseif isstruct(iter)
