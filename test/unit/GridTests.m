@@ -383,6 +383,8 @@ classdef GridTests < AbstractTestCase
         end
 
         function it_can_be_parallelized(test)
+            test.assumeTrue(exist("parpool", "file") == 2);
+
             if isempty(gcp('nocreate'))
                 pool = parpool('local', 2);
                 finally = onCleanup(@() delete(pool));
