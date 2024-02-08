@@ -34,12 +34,25 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(load(file).grid, grid);
         end
 
-        function it_cannot_be_concatenated(test)
+        function it_cannot_be_concatenated_when_iterators_are_the_same(test)
             grid = containers.Grid(0, {1:2, 3:4});
 
             test.verifyError(@() [grid, grid], "grid:GridConcat");
             test.verifyError(@() [grid; grid], "grid:GridConcat");
             test.verifyError(@() repmat(grid, 2, 2), "grid:GridConcat");
+        end
+
+        function it_can_be_concatenated_if_one_iterator_is_different(test)
+            grid1 = containers.Grid(rand(2, 2, 2), {1:2, 3:4, 3:4});
+            grid2 = containers.Grid(rand(2, 2, 2), {1:2, 5:6, 3:4});
+
+            test.verifyEqual(cat(grid1, grid2), cat(1, grid1, grid2));
+            test.verifyEqual(cat(grid1, grid2), [grid1, grid2]);
+            test.verifyEqual(cat(grid1, grid2), [grid1; grid2]);
+
+            grid = [grid1, grid2];
+            test.verifyEqual(grid.Iter, {1:2, [3:4, 5:6], 3:4});
+            test.verifyEqual(grid.Data, cat(2, grid1.Data, grid2.Data));
         end
 
         function it_has_save_that_can_be_chained(test)

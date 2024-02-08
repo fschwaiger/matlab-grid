@@ -19,6 +19,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   applyTo       -  Adds the iterations from the grid to a simulink test case.
     %   assign        -  Assigns values of other grid to self.
     %   at            -  Returns data and iterator struct at linear index k.
+    %   cat           -  Concatenates two grid along the only iterator they have not in common.
     %   collapse      -  Removes dimensions from the grid using a reducer.
     %   contains      -  Returns whether it contains the given value (at iterator).
     %   data          -  Gets or sets the data of the object.
@@ -258,30 +259,22 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
             data = struct(self);
         end
 
-        function varargin = cat(varargin)
+        function self = vertcat(varargin)
             % Fails, because grids cannot be concatenated into arrays.
 
-            error("grid:GridConcat", "containers.Grid cannot be concatenated " + ...
-                "into arrays. Use 'union(g1, g2)' instead if you " + ...
-                "intend to merge the contents of two grids.");
+            self = cat(varargin{:});
         end
 
-        function varargin = vertcat(varargin)
+        function self = horzcat(varargin)
             % Fails, because grids cannot be concatenated into arrays.
 
-            cat(1, varargin{:});
-        end
-
-        function varargin = horzcat(varargin)
-            % Fails, because grids cannot be concatenated into arrays.
-
-            cat(2, varargin{:});
+            self = cat(varargin{:});
         end
 
         function varargin = repmat(varargin)
             % Fails, because grids cannot be concatenated into arrays.
 
-            cat(1, varargin{:});
+            error("grid:GridConcat", "containers.Grid cannot be replicated.");
         end
 
         %#release include file assign.m
@@ -289,6 +282,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         %#release include file at.m
 
         %#release include file applyTo.m
+
+        %#release include file cat.m
 
         %#release include file collapse.m
 
@@ -384,6 +379,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = assign(self, from);
         [data, iter] = at(self, k);
         self = applyTo(self, testCase, options);
+        self = cat(self, grids);
         self = collapse(self, dims, reduceFcn);
         [tf, index] = contains(self, value);
         self = data(self, data);
