@@ -23,6 +23,9 @@ function varargout = partition(self, varargin)
     elseif nargin > 2
         % specify splits by dimension slice
         [varargout{1:nargout}] = partitionBySlice(varargin);
+    elseif issparse(self)
+        % specify splits automatically
+        [varargout{1:nargout}] = partitionSparseIntoEqualParts(varargin{1});
     else
         % specify splits automatically
         [varargout{1:nargout}] = partitionIntoEqualParts(varargin{1});
@@ -61,6 +64,21 @@ function varargout = partition(self, varargin)
         end
 
         varargout = arrayfun(@(iPart) {slice(self, mask == iPart)}, 1:nParts);
+    end
+
+    function varargout = partitionSparseIntoEqualParts(N)
+        % Partitions the grid into N mostly equal parts.
+        
+        n = numel(self);
+        d = mat2cell(self.Data, diff(round(linspace(0, n, N + 1))));
+        i = mat2cell(self.Iter, diff(round(linspace(0, n, N + 1))));
+        self.Data = [];
+        self.Iter(:) = [];
+        varargout = repmat({self}, 1, N);
+        for k = 1:N
+            varargout{k}.Data = d{k};
+            varargout{k}.Iter = i{k};
+        end
     end
 
     function varargout = partitionIntoEqualParts(N)

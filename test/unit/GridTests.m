@@ -488,6 +488,18 @@ classdef GridTests < AbstractTestCase
             test.verifyTrue(issparse(grid));
         end
 
+        function it_can_partition_sparse_grid(test)
+            grid = makegrid(1, {0:1000:10000, 0:50:200}, {'alt_ft', 'v_kts'});
+            grid = sparse(grid);
+            [grid1, grid2] = grid.partition();
+
+            test.verifyEqual(numel(grid1) + numel(grid2), numel(grid));
+
+            test.verifyEqual([grid1.Data; grid2.Data], grid.Data);
+            test.verifyEqual([grid1.Iter; grid2.Iter], grid.Iter);
+            test.verifyEqual(grid1.Dims, grid.Dims);
+        end
+
         function it_must_have_unique_values_in_iterator(test)
             test.verifyError(@() containers.Grid(false, {1:2, [1, 1, nan], 1:3}), ...
                 "grid:InvalidInput");
