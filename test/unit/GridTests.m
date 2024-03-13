@@ -247,6 +247,14 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(size(grid), [30, 1]);
         end
 
+        function it_can_retain_dim_if_sparse(test)
+            grid = makegrid(1, {0:10, 0:10, 0:10, 0:10});
+            grid = sparse(grid);
+            grid = grid.retain(["x2", "x3"], @max);
+            test.verifyEqual(size(grid), [11, 11]);
+            test.verifyEqual(grid.Dims, ["x2", "x3"]);
+        end
+
         function it_can_reduce_a_dimension_changing_type(test)
             grid = containers.Grid(rand([30, 1, 30]));
             grid = grid.collapse(1, @(x) {x});

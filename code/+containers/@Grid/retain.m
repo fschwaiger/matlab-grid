@@ -40,7 +40,8 @@ function self = retain(self, dims, reduceFcn)
 
     % reorder, so that result matches order of input dims
     if issparse(self)
-        self.Iter = orderfields(self.Iter, dims);
+        [~, order] = sort(dims);
+        self.Iter = orderfields(self.Iter, order);
     else
         [~, order] = sort(dims);
         order(order) = 1:numel(order);
