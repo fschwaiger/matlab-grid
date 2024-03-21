@@ -5,13 +5,18 @@ function self = iter(self, varargin)
     %
     % Examples:
     %   iter = grid.iter()
-    %   grid.iter(iter).map(@fcn)...
+    %   grid = grid.iter('x', iter)
+    %   grid.iter(iter).map(@fcn)
+    %   x = grid.iter('x')
+
 
     if issparse(self)
         if nargin == 1
             self = self.Iter;
-        else
+        elseif nargin == 2 && isstruct(varargin{1})
             self.Iter = varargin{1};
+        elseif nargin == 2 && isstring(varargin{1}) || ischar(varargin{1})
+            self = [self.Iter.(varargin{1})];
         end
     else
         if nargin == 1
