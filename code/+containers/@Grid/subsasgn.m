@@ -1,33 +1,19 @@
 function self = subsasgn(self, s, varargin)
     % SUBSASGN - Customizes indexing into the grid, setting data.
-
-    % subsequent indexing
-    if numel(s) > 1
-        data = subsasgn(subsref(self, s(1)), s(2:end), varargin{:});
-    else
-        data = varargin{1};
-    end
-
-    if s(1).type == "()"
-        % select data and continue: grid(...) = ...
-        args = subs2args(self, s(1).subs);
-        self.Data(args{:}) = data.Data;
-    elseif s(1).type == "{}"
-        % select data and continue: grid{"a", "b"} = ...
-        args = subs2args(self, s(1).subs);
-        self.Data(args{:}) = data;
-    elseif s(1).type == "." && ismember(s(1).subs, self.Dims)
-        % assign single Iter by name: grid.x1 = ...
-        if issparse(self)
-            data = mat2cell(data, size(data, 1), ones(1, size(data, 2)));
-            [self.Iter.(s(1).subs)] = deal(data{:});
-        else
-            self.Iter{self.Dims == s(1).subs} = data;
+    
+    if s(1).type(1) ~= '.'
+        if s(1).type(1) == '('
+            varargin = {varargin{1}.Data};
         end
-    else
-        % property access
-        self = builtin('subsasgn', self, s(1), data);
+        
+        s = [ ...
+            substruct('.', 'Data'), ...
+            substruct('()', subs2args(self, s(1).subs)), ...
+            s(2:end) ...
+        ];
     end
+    
+    self = builtin('subsasgn', self, s, varargin{:});
 end
 
 %#release exclude file

@@ -159,23 +159,6 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid.x2, [3,3,4,4]);
         end
 
-        function it_can_subsasgn_iterators_if_sparse(test)
-            grid = containers.Grid(rand(2, 2), {1:2, 3:4}).sparse();
-            
-            grid.x1 = 1:4;
-            test.verifyEqual(grid.x1, 1:4);
-        end
-
-        function it_can_subsasgn_iterators(test)
-            grid = containers.Grid(rand(2, 2), {1:2, 3:4});
-
-            grid.x2 = 5:6;
-            test.verifyEqual(grid.Iter{2}, 5:6);
-
-            grid.x2 = 7:8;
-            test.verifyEqual(grid.Iter{2}, 7:8);
-        end
-
         function it_can_subsasgn_data(test)
             grid = containers.Grid(struct("a", {1,2;3,4}), {1:2, 3:4});
             grid{3}.a = 42;
