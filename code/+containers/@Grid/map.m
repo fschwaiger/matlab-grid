@@ -38,8 +38,8 @@ function varargout = map(self, varargin)
         "grid:InvalidInput", "All grids must be distributed or none.");
 
     % make a local copy to prevent propagation of SELF into parallel workers
-    iter2struct(self.Iter, cellstr(self.Dims));
     iter = self.Iter;
+    dims = self.Dims;
     sz = size(self);
 
     % init output containers
@@ -77,7 +77,7 @@ function varargout = map(self, varargin)
     return
 
     function varargout = mapWithIter(k, varargin)
-        [varargout{1:nargout}] = mapFcn(varargin{:}, iter2struct(k));
+        [varargout{1:nargout}] = mapFcn(varargin{:}, iter2struct(iter, dims, k));
     end
 
     function varargout = mapAsVector(varargin)

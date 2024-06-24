@@ -1,126 +1,172 @@
-#include "mex.h"
-#include "matrix.h"
-#include <numeric>
-#include <algorithm>
-#include <cstring>
+#include "mex.hpp"
+#include "mexAdapter.hpp"
+#include <vector>
 
-static mxArray *indexer = NULL;
-static mxArray *gridIter = NULL;
-static mwSize *sizes = NULL;
-static char **names = NULL;
-static double *pIndex = NULL;
-static mwSize nDims = 0;
+using namespace std;
+using namespace matlab::data;
+using namespace matlab::engine;
 
-static void setStructFields(mxArray *result, mwSize iTarget, mwSize iSource)
+class MexFunction : public matlab::mex::Function
 {
-    if (pIndex == NULL)
+public:
+    void operator()(matlab::mex::ArgumentList outputs, matlab::mex::ArgumentList inputs)
     {
-        const char *fieldNames[] = {"type", "subs"};
-        mxArray *index = mxCreateDoubleScalar(1);
-        mxArray *subs = mxCreateCellMatrix(1, 2);
-        mxSetCell(subs, 0, mxCreateString(":"));
-        mxSetCell(subs, 1, index);
-        indexer = mxCreateStructMatrix(1, 1, 2, fieldNames);
-        mxSetFieldByNumber(indexer, 0, 0, mxCreateString("()"));
-        mxSetFieldByNumber(indexer, 0, 1, subs);
-        pIndex = mxGetPr(index);
-        mexMakeArrayPersistent(indexer);
-    }
+        CellArray gridIter(inputs[0]);
+        StringArray gridDims(inputs[1]);
+        auto nDims = gridIter.getNumberOfElements();
+        auto names = vector<string>(nDims);
+        auto sizes = vector<size_t>(nDims);
+        size_t nTotal = 1;
 
-    for (mwSize iDim = 0; iDim < nDims; iDim++)
-    {
-        mxArray *iter = mxGetCell(gridIter, iDim);
-        mxArray *value = NULL;
-        mwSize i = iSource % sizes[iDim];
-        bool isRow = mxGetM(iter) == 1;
+        for (size_t i = 0, n = 0; i < nDims; i++)
+        {
+            n = gridIter[i].getDimensions()[1];
+            names[i] = gridDims[i];
+            sizes[i] = n;
+            nTotal *= n;
+        }
 
-        if (mxIsNumeric(iter))
+        if (inputs.size() == 3)
         {
-            void *data = mxGetData(iter);
-            mwSize nRows = mxGetM(iter);
-            mwSize offset = i * nRows;
-            mwSize nBytes = mxGetElementSize(iter);
-            value = mxCreateNumericMatrix(nRows, 1, mxGetClassID(iter), mxREAL);
-            memcpy(mxGetData(value), static_cast<char *>(data) + offset * nBytes, nRows * nBytes);
-        }
-        else if (isRow && mxIsStruct(iter))
-        {
-            mwSize nFields = mxGetNumberOfFields(iter);
-            const char **names = new const char *[nFields];
-            for (mwSize iField = 0; iField < nFields; iField++)
-            {
-                names[iField] = mxGetFieldNameByNumber(iter, iField);
-            }
-            value = mxCreateStructMatrix(1, 1, nFields, names);
-            for (mwSize iField = 0; iField < nFields; iField++)
-            {
-                mxSetFieldByNumber(value, 0, iField, mxDuplicateArray(mxGetFieldByNumber(iter, i, iField)));
-            }
-        }
-        else if (isRow && mxIsChar(iter))
-        {
-            mxChar *str = mxGetChars(iter);
-            mwSize sizes[] = {1};
-            value = mxCreateCharArray(1, sizes);
-            mxGetChars(value)[0] = str[i];
+            auto result(factory.createStructArray({1, 1}, names));
+            setStructFields(result, gridIter, sizes, names, 0, size_t(inputs[2][0]) - 1);
+            outputs[0] = result;
         }
         else
         {
-            *pIndex = i + 1;
-            mxArray *args[] = {iter, indexer};
-            mexCallMATLAB(1, &value, 2, args, "subsref");
+            auto result(factory.createStructArray({nTotal, 1}, names));
+            for (size_t k = 0; k < nTotal; k++)
+            {
+                setStructFields(result, gridIter, sizes, names, k, k);
+            }
+            outputs[0] = result;
         }
-
-        mxSetFieldByNumber(result, iTarget, iDim, value);
-        iSource /= sizes[iDim];
     }
-}
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-    // load meta data
-    if (nrhs > 1)
+    MexFunction() : substructure(factory.createStructArray({1, 1}, {"type", "subs"}))
     {
-        if (gridIter != NULL)
+        engine = getEngine();
+        auto subs(factory.createCellArray({1, 2}));
+        subs[0] = factory.createCharArray(":");
+        subs[1] = factory.createScalar<double>(0);
+        substructure[0]["type"] = factory.createCharArray("()");
+        substructure[0]["subs"] = subs;
+    }
+
+private:
+    ArrayFactory factory;
+    shared_ptr<MATLABEngine> engine;
+    StructArray substructure;
+
+    void setStructFields(StructArray &result, const CellArray &iters,
+        const vector<size_t> &sizes, const vector<string> &names,
+        size_t iTarget, size_t iSource)
+    {
+        Array itDim, slice;
+        size_t iCol;
+        for (size_t iDim = 0; iDim < result.getNumberOfFields(); iDim++)
         {
-            mxDestroyArray(gridIter);
-            std::for_each(names, names + nDims, mxFree);
-            delete[] names;
-            delete[] sizes;
-        }
+            itDim = iters[iDim];
+            iCol = iSource % sizes[iDim];
+            iSource /= sizes[iDim];
 
-        gridIter = mxDuplicateArray(prhs[0]);
-        mexMakeArrayPersistent(gridIter);
-        nDims = mxGetNumberOfElements(prhs[0]);
-        sizes = new mwSize[nDims];
-        names = new char *[nDims];
-        for (mwSize iDim = 0; iDim < nDims; iDim++)
-        {
-            sizes[iDim] = mxGetN(mxGetCell(prhs[0], iDim));
-            names[iDim] = mxArrayToString(mxGetCell(prhs[1], iDim));
-            mexMakeMemoryPersistent(names[iDim]);
+            if (itDim.getType() == ArrayType::DOUBLE)
+            {
+                slice = sliceArray<double>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::LOGICAL)
+            {
+                slice = sliceArray<bool>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::CHAR)
+            {
+                slice = sliceArray<char16_t>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::MATLAB_STRING)
+            {
+                slice = sliceArray<MATLABString>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::UINT8)
+            {
+                slice = sliceArray<uint8_t>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::INT8)
+            {
+                slice = sliceArray<int8_t>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::UINT16)
+            {
+                slice = sliceArray<uint16_t>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::INT16)
+            {
+                slice = sliceArray<int16_t>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::UINT32)
+            {
+                slice = sliceArray<uint32_t>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::INT32)
+            {
+                slice = sliceArray<int32_t>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::UINT64)
+            {
+                slice = sliceArray<uint64_t>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::INT64)
+            {
+                slice = sliceArray<int64_t>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::COMPLEX_DOUBLE)
+            {
+                slice = sliceArray<complex<double>>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::COMPLEX_SINGLE)
+            {
+                slice = sliceArray<complex<float>>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::COMPLEX_INT8)
+            {
+                slice = sliceArray<complex<int8_t>>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::COMPLEX_UINT8)
+            {
+                slice = sliceArray<complex<uint8_t>>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::COMPLEX_INT16)
+            {
+                slice = sliceArray<complex<int16_t>>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::COMPLEX_UINT16)
+            {
+                slice = sliceArray<complex<uint16_t>>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::COMPLEX_INT32)
+            {
+                slice = sliceArray<complex<int32_t>>(itDim, iCol);
+            }
+            else if (itDim.getType() == ArrayType::COMPLEX_UINT32)
+            {
+                slice = sliceArray<complex<uint32_t>>(itDim, iCol);
+            }
+            else
+            {
+                CellArrayRef subs = substructure[0]["subs"];
+                subs[1] = factory.createScalar<double>(iCol + 1);
+                slice = engine->feval(u"subsref", 1, {itDim, substructure}).front();
+            }
+
+            result[iTarget][names[iDim]] = slice;
         }
     }
-    else if (gridIter == NULL)
-    {
-        mexErrMsgIdAndTxt("grid:InvalidInput", "No grid iterator loaded.");
-    }
 
-    // create single struct
-    if (nrhs == 1 || nrhs == 3)
+    template <typename T>
+    inline TypedArray<T> sliceArray(const TypedArray<T> &iter, size_t k)
     {
-        plhs[0] = mxCreateStructMatrix(1, 1, nDims, const_cast<const char **>(names));
-        setStructFields(plhs[0], 0, mxGetScalar(prhs[nrhs - 1]));
+        auto nRows = iter.getDimensions()[0];
+        auto first = iter.begin() + k;
+        auto last = first + nRows;
+        return factory.createArray({nRows, 1}, first, last);
     }
-
-    // create struct array
-    else if (nlhs > 0)
-    {
-        mwSize nTotal(std::accumulate(sizes, sizes + nDims, 1, [](mwSize a, mwSize b) { return a * b; }));
-        plhs[0] = mxCreateStructMatrix(nTotal, 1, nDims, const_cast<const char **>(names));
-        for (mwSize k = 0; k < nTotal; k++)
-        {
-            setStructFields(plhs[0], k, k);
-        }
-    }
-}
+};

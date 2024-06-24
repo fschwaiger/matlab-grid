@@ -1,90 +1,84 @@
 classdef GridIteratorTests < matlab.perftest.TestCase %#ok<*NASGU,*ASGLU>
 
     methods (Test)
-        function method1(test)
+        function assign_by_name(test)
             grid = test.make_test_grid();
 
             while test.keepMeasuring()
-                sz = [10, 10, 10, 10, 10];
+                sz = [10, 10, 5, 2];
                 c = cell(sz);
-                iter1 = struct(x1=c,x2=c,x3=c,x4=c,x5=c);
-                iters = grid.Iter;
+                iter = struct(x1=c,x2=c,x3=c,x4=c);
+                orig = grid.Iter;
                 dims = grid.Dims;
-                subs = cell(1, 5);
+                subs = cell(1, 4);
 
                 for k = 1:numel(c)
                     [subs{:}] = ind2sub(sz, k);
-                    for iDim = 1:5
-                        iter1(k).(dims(iDim)) = iters{iDim}(:, subs{iDim});
+                    for iDim = 1:4
+                        iter(k).(dims(iDim)) = orig{iDim}(:, subs{iDim});
                     end
                 end
             end
+
+            test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));
         end
 
-        function method2(test)
+        function assign_with_jit(test)
             grid = test.make_test_grid();
 
             while test.keepMeasuring()
-                sz = [10, 10, 10, 10, 10];
+                sz = [10, 10, 5, 2];
                 c = cell(sz);
-                iter2 = struct(x1=c,x2=c,x3=c,x4=c,x5=c);
-                iters = grid.Iter;
-                subs = cell(1, 5);
+                iter = struct(x1=c,x2=c,x3=c,x4=c);
+                orig = grid.Iter;
+                subs = cell(1, 4);
 
                 for k = 1:numel(c)
                     [subs{:}] = ind2sub(sz, k);
-                    iter2(k).x1 = iters{1}(:, subs{1});
-                    iter2(k).x2 = iters{2}(:, subs{2});
-                    iter2(k).x3 = iters{3}(:, subs{3});
-                    iter2(k).x4 = iters{4}(:, subs{4});
-                    iter2(k).x5 = iters{5}(:, subs{5});
+                    iter(k).x1 = orig{1}(:, subs{1});
+                    iter(k).x2 = orig{2}(:, subs{2});
+                    iter(k).x3 = orig{3}(:, subs{3});
+                    iter(k).x4 = orig{4}(:, subs{4});
                 end
             end
+
+            test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));
         end
 
-        function method3(test)
+        function use_mex(test)
             grid = test.make_test_grid();
 
             while test.keepMeasuring()
-                sz = [10, 10, 10, 10, 10];
-                c = cell(sz);
-                cc = {c, c, c, c, c};
-                iter3 = struct(x1=c,x2=c,x3=c,x4=c,x5=c);
-                iters = grid.Iter;
-                dims = grid.Dims;
-                subs = cell(1, 5);
-                for k = 1:numel(c)
-                    [subs{:}] = ind2sub(sz, k);
-                    for j = 1:5
-                        cc{j}{k} = iters{j}(:, subs{j});
-                    end
-                end
-                for j = 1:5
-                    [iter3.(dims(j))] = cc{j}{:};
-                end
+                iter = iter2struct(grid.Iter, grid.Dims);
             end
+
+            test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));
         end
 
-        function method4(test)
+        function use_map_might_use_mex(test)
             grid = test.make_test_grid();
 
             while test.keepMeasuring()
-                iter4 = iter2struct(grid.Iter, cellstr(grid.Dims));
+                iter = grid.map(@(~, it) it).data();
             end
+
+            test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));
         end
 
-        function method5(test)
+        function use_old_map_for_baseline(test)
             grid = test.make_test_grid();
 
             while test.keepMeasuring()
-                iter5 = grid.map(@(~, it) it).data();
+                iter = grid.oldmap(@(~, it) it).data();
             end
+
+            test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));
         end
     end
 
     methods
         function grid = make_test_grid(~)
-            grid = makegrid(true, {1:10, 1:10, 'abcdefghij', [1:10; 2:11], 1:10});
+            grid = makegrid(true, {1:10, 'abcdefghij', [1:5; 2:6], ["up", "down"]});
         end
     end
 end
