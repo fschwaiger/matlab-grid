@@ -21,9 +21,19 @@ function [data, iter] = at(self, k)
 
     % data can be retrieved by linear index, which is faster than subscripts
     data = self.Data(k);
+    temp = self.Iter;
+    dims = self.Dims;
+    sz = size(self);
 
     if nargout > 1
-        iter = iter2struct(self.Iter, cellstr(self.Dims), k);
+        iter = struct();
+        k = k - 1;
+        for iDim = 1:ndims(self)
+            n = sz(iDim);
+            i = mod(k, n);
+            k = (k - i) / n;
+            iter.(dims(iDim)) = temp{iDim}(:, i + 1);
+        end
     end
 end
 

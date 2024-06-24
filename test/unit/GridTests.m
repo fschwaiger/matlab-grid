@@ -1201,7 +1201,7 @@ classdef GridTests < AbstractTestCase
         end
         
         function iter2struct_returns_correct_structs(test)
-            a = iter2struct({1:5, 1:5, ["up","down"]}, {'a','b','c'});
+            a = iter2struct({1:5, 1:5, ["up","down"]}, ["a", "b", "c"]);
             test.verifyEqual(fieldnames(a), {'a';'b';'c'});
             test.verifyEqual(numel(a), 50);
         end

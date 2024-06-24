@@ -64,16 +64,6 @@ classdef GridIteratorTests < matlab.perftest.TestCase %#ok<*NASGU,*ASGLU>
 
             test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));
         end
-
-        function use_old_map_for_baseline(test)
-            grid = test.make_test_grid();
-
-            while test.keepMeasuring()
-                iter = grid.oldmap(@(~, it) it).data();
-            end
-
-            test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));
-        end
     end
 
     methods
