@@ -1199,5 +1199,11 @@ classdef GridTests < AbstractTestCase
             test.verifyError(@() map(makegrid(rand(5, 5)), makegrid(rand(5, 5)), @mean), "MATLAB:getdimarg:invalidDim");
             test.verifyWarningFree(@() map(makegrid(rand(5, 5)), makegrid(rand(5, 5)), @mean, 1));
         end
+        
+        function iter2struct_returns_correct_structs(test)
+            a = iter2struct({1:5, 1:5, ["up","down"]}, {'a','b','c'});
+            test.verifyEqual(fieldnames(a), {'a';'b';'c'});
+            test.verifyEqual(numel(a), 50);
+        end
     end
 end

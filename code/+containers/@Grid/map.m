@@ -13,7 +13,7 @@ function varargout = map(self, varargin)
     % operate on a single input:
     %
     %   grid = map(grid1, grid2, @mean, 1)
-    %   
+    %
     % See also containers.Grid
 
     % assign inputs
@@ -31,15 +31,14 @@ function varargout = map(self, varargin)
     assert(iscompatible(grids{:}), "grid:InvalidInput", ...
         "Specified incompatible grids for map() to operate on. " + ...
         "Use [~, c] = iscompatible(grids) to figure out differences.");
-    
+
     % if we have multiple grids, all must be distributed or none
     assert(not(exist('isdistributed', 'file')) || ...
         all(cellfun(@isdistributed, grids) == isdistributed(self)), ...
         "grid:InvalidInput", "All grids must be distributed or none.");
 
     % make a local copy to prevent propagation of SELF into parallel workers
-    dims = self.Dims;
-    nDims = numel(dims);
+    iter2struct(self.Iter, cellstr(self.Dims));
     iter = self.Iter;
     sz = size(self);
 
@@ -47,7 +46,7 @@ function varargout = map(self, varargin)
     for k = 1:numel(grids)
         grids{k} = grids{k}.Data;
     end
-    
+
     % if we run the arrayfun below in a distributed environment, then MATLAB will
     % broadcast the current grid to all workers because of the closures below.
     % We can avoid serializing and broadcasting the entire grid data by unsetting
@@ -78,20 +77,11 @@ function varargout = map(self, varargin)
     return
 
     function varargout = mapWithIter(k, varargin)
-        [varargout{1:nargout}] = mapFcn(varargin{:}, iterator(k));
+        [varargout{1:nargout}] = mapFcn(varargin{:}, iter2struct(k));
     end
 
     function varargout = mapAsVector(varargin)
         [varargout{1:nargout}] = mapFcn([varargin{:}]);
-    end
-
-    function it = iterator(k)
-        subs = cell(1, nDims);
-        [subs{:}] = ind2sub(sz, k);
-        it = struct();
-        for iDim = 1:nDims
-            it.(dims(iDim)) = iter{iDim}(:, subs{iDim});
-        end
     end
 end
 

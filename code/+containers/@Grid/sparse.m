@@ -6,7 +6,7 @@ function self = sparse(self)
     % See also containers.Grid
 
     if not(issparse(self))
-        self.Iter = reshape(map(self, @(~, at) at).Data, [], 1);
+        self.Iter = iter2struct(self.Iter, cellstr(self.Dims));
         self.Data = reshape(self.Data, [], 1);
     end
 end
