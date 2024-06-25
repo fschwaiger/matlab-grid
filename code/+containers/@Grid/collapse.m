@@ -58,22 +58,29 @@ function self = collapse(self, dims, reduceFcn)
 
     % sparse solution
     if issparse(self)
-        iteratorsWithoutDims = rmfield(self.Iter, self.Dims(dims));
-        self.Dims(dims) = [];
-        dims = self.Dims;
-        valuesFromFields = cell(1, numel(dims));
-        columnIndices = valuesFromFields;
-        for k = 1:numel(valuesFromFields)
-            [valuesFromFields{k}, ~, columnIndices{k}] = unique(transpose([iteratorsWithoutDims.(dims(k))]), 'rows');
+        names = self.Dims;
+        names(dims) = [];
+        values = rmfield(self.Iter, self.Dims(dims));
+        groups = zeros(size(values));
+        reduced = [];
+        indices = 1:numel(values);
+        nGroups = 1;
+        while not(isempty(values))
+            v = values(1);
+            mask = true(1, numel(values));
+            for name = names
+                c = v.(name);
+                m = ismissing(c);
+                mask = mask & cellfun(@(v) all(m & ismissing(v) | c == v, 'all'), {values.(name)});
+            end
+            groups(indices(mask)) = nGroups;
+            values(mask) = [];
+            indices(mask) = [];
+            nGroups = nGroups + 1;
+            reduced = [reduced; v]; %#ok
         end
-        uniqueValues = cell(1, size(columnIndices, 2));
-        [groups, uniqueValues{:}] = findgroups(columnIndices{:});
-        for k = 1:numel(valuesFromFields)
-            uniqueValues{k} = transpose(valuesFromFields{k}(uniqueValues{k}, :));
-        end
-        uniqueValues = cellfun(@(c) mat2cell(c, size(c, 1), ones(1, size(c, 2))), uniqueValues, Uniform=false);
-        uniqueValues = vertcat(uniqueValues{:});
-        self.Iter = transpose(cell2struct(uniqueValues, self.Dims, 1));
+
+        self.Iter = reduced;
         self.Data = splitapply(reduceFcn, self.Data, groups);
         return
     end
