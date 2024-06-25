@@ -13,7 +13,7 @@ function varargout = map(self, varargin)
     % operate on a single input:
     %
     %   grid = map(grid1, grid2, @mean, 1)
-    %   
+    %
     % See also containers.Grid
 
     % assign inputs
@@ -31,7 +31,7 @@ function varargout = map(self, varargin)
     assert(iscompatible(grids{:}), "grid:InvalidInput", ...
         "Specified incompatible grids for map() to operate on. " + ...
         "Use [~, c] = iscompatible(grids) to figure out differences.");
-    
+
     % if we have multiple grids, all must be distributed or none
     assert(not(exist('isdistributed', 'file')) || ...
         all(cellfun(@isdistributed, grids) == isdistributed(self)), ...
@@ -42,12 +42,13 @@ function varargout = map(self, varargin)
     nDims = numel(dims);
     iter = self.Iter;
     sz = size(self);
+    v = cell(nDims, 1);
 
     % init output containers
     for k = 1:numel(grids)
         grids{k} = grids{k}.Data;
     end
-    
+
     % if we run the arrayfun below in a distributed environment, then MATLAB will
     % broadcast the current grid to all workers because of the closures below.
     % We can avoid serializing and broadcasting the entire grid data by unsetting
@@ -56,7 +57,7 @@ function varargout = map(self, varargin)
 
     if nInputs < numel(grids)
         % with matrices, we can use arrayfun to cover all data points
-        [varargout{1:nargout}] = arrayfun(@mapAsVector, grids{:});
+        [varargout{1:nargout}] = arrayfun(@(varargin) mapFcn([varargin{:}]), grids{:});
     elseif nInputs == numel(grids)
         % with matrices, we can use arrayfun to cover all data points
         [varargout{1:nargout}] = arrayfun(mapFcn, grids{:});
@@ -65,7 +66,9 @@ function varargout = map(self, varargin)
         [varargout{1:nargout}] = arrayfun(mapFcn, grids{:}, iter);
     else
         % iterator will be computed from linear indices
-        [varargout{1:nargout}] = arrayfun(@mapWithIter, reshape(1:prod(sz), [sz, 1, 1]), grids{:});
+        f = @(k, varargin) mapFcn(varargin{:}, iterator(k));
+        k = reshape(1:prod(sz), [sz, 1, 1]);
+        [varargout{1:nargout}] = arrayfun(f, k, grids{:});
     end
 
     % reassign outputs to grids
@@ -77,21 +80,15 @@ function varargout = map(self, varargin)
     % only local functions below
     return
 
-    function varargout = mapWithIter(k, varargin)
-        [varargout{1:nargout}] = mapFcn(varargin{:}, iterator(k));
-    end
-
-    function varargout = mapAsVector(varargin)
-        [varargout{1:nargout}] = mapFcn([varargin{:}]);
-    end
-
-    function it = iterator(k)
-        subs = cell(1, nDims);
-        [subs{:}] = ind2sub(sz, k);
-        it = struct();
+    function s = iterator(k)
+        k = k - 1;
         for iDim = 1:nDims
-            it.(dims(iDim)) = iter{iDim}(:, subs{iDim});
+            n = sz(iDim);
+            i = mod(k, n);
+            k = (k - i) / n;
+            v{iDim} = iter{iDim}(:, i + 1);
         end
+        s = cell2struct(v, dims);
     end
 end
 

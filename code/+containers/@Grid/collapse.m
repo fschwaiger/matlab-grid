@@ -27,7 +27,7 @@ function self = collapse(self, dims, reduceFcn)
         % prevent running reduceFcn on each scalar value below
         return
     end
-    
+
     % the user can specify dimension indices OR strings OR logical mask
     if islogical(dims)
         dims = find(dims);
@@ -58,19 +58,26 @@ function self = collapse(self, dims, reduceFcn)
 
     % sparse solution
     if issparse(self)
+        names = self.Dims;
+        names(dims) = [];
         values = rmfield(self.Iter, self.Dims(dims));
         groups = zeros(size(values));
         reduced = [];
         indices = 1:numel(values);
         nGroups = 1;
         while not(isempty(values))
-            c = values(1);
-            mask = arrayfun(@(v) isequaln(c, v), values);
+            v = values(1);
+            mask = true(1, numel(values));
+            for name = names
+                c = v.(name);
+                m = ismissing(c);
+                mask = mask & cellfun(@(v) all(m & ismissing(v) | c == v, 'all'), {values.(name)});
+            end
             groups(indices(mask)) = nGroups;
             values(mask) = [];
             indices(mask) = [];
             nGroups = nGroups + 1;
-            reduced = [reduced; c]; %#ok
+            reduced = [reduced; v]; %#ok
         end
 
         self.Iter = reduced;

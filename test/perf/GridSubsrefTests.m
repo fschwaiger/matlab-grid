@@ -1,4 +1,6 @@
-classdef GridSubsrefTests < matlab.perftest.TestCase
+classdef (SharedTestFixtures = {
+        matlab.unittest.fixtures.ProjectFixture(fileparts(fileparts(fileparts(mfilename('fullpath')))))
+    }) GridSubsrefTests < matlab.perftest.TestCase %#ok<*NASGU,*ASGLU>
 
     methods (Test)
         function subref_dims(test)
@@ -67,10 +69,26 @@ classdef GridSubsrefTests < matlab.perftest.TestCase
                 b = grid.b;
             end
         end
+
+        function subsasgn_with_braces(test)
+            grid = makegrid(true, {1:10, 1:10, 1:10, 1:10, 1:10});
+            
+            while test.keepMeasuring()
+                grid{randi(10000)+1} = false;
+            end
+        end
+
+        function subsasgn_with_data(test)
+            grid = makegrid(true, {1:10, 1:10, 1:10, 1:10, 1:10});
+            
+            while test.keepMeasuring()
+                grid.Data(randi(10000)+1) = false;
+            end
+        end
     end
 
     methods
-        function grid = make_test_grid(test)
+        function grid = make_test_grid(~)
             grid = makegrid(struct( ...
                 'a', mat2cell(rand(25, 10), [5,5,5,5,5], ones(1, 10)), ...
                 'b', num2cell(repmat({struct('c', rand(1, 1))}, 5, 10)) ...
