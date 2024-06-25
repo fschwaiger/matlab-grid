@@ -27,7 +27,7 @@ function self = collapse(self, dims, reduceFcn)
         % prevent running reduceFcn on each scalar value below
         return
     end
-    
+
     % the user can specify dimension indices OR strings OR logical mask
     if islogical(dims)
         dims = find(dims);
@@ -58,22 +58,22 @@ function self = collapse(self, dims, reduceFcn)
 
     % sparse solution
     if issparse(self)
-        values = rmfield(self.Iter, self.Dims(dims));
-        groups = zeros(size(values));
-        reduced = [];
-        indices = 1:numel(values);
-        nGroups = 1;
-        while not(isempty(values))
-            c = values(1);
-            mask = arrayfun(@(v) isequaln(c, v), values);
-            groups(indices(mask)) = nGroups;
-            values(mask) = [];
-            indices(mask) = [];
-            nGroups = nGroups + 1;
-            reduced = [reduced; c]; %#ok
+        iteratorsWithoutDims = rmfield(self.Iter, self.Dims(dims));
+        self.Dims(dims) = [];
+        dims = self.Dims;
+        valuesFromFields = cell(1, numel(dims));
+        columnIndices = valuesFromFields;
+        for k = 1:numel(valuesFromFields)
+            [valuesFromFields{k}, ~, columnIndices{k}] = unique(transpose([iteratorsWithoutDims.(dims(k))]), 'rows');
         end
-
-        self.Iter = reduced;
+        uniqueValues = cell(1, size(columnIndices, 2));
+        [groups, uniqueValues{:}] = findgroups(columnIndices{:});
+        for k = 1:numel(valuesFromFields)
+            uniqueValues{k} = transpose(valuesFromFields{k}(uniqueValues{k}, :));
+        end
+        uniqueValues = cellfun(@(c) mat2cell(c, size(c, 1), ones(1, size(c, 2))), uniqueValues, Uniform=false);
+        uniqueValues = vertcat(uniqueValues{:});
+        self.Iter = transpose(cell2struct(uniqueValues, self.Dims, 1));
         self.Data = splitapply(reduceFcn, self.Data, groups);
         return
     end

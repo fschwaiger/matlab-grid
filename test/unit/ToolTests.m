@@ -15,8 +15,9 @@ classdef ToolTests < AbstractTestCase
         end
 
         function it_can_store_file_with_savegrid_and_loadgrid(test)
-            temp = test.applyFixture(matlab.unittest.fixtures.TemporaryFolderFixture());
-            file = temp.Folder + "/grid.mat";
+            file = tempname() + ".mat";
+            finally = onCleanup(@() delete(file));
+
             expect = containers.Grid(rand(3), {1:3, 2:4}, ["a", "b"]);
 
             savegrid(file, expect);
@@ -28,8 +29,8 @@ classdef ToolTests < AbstractTestCase
         end
 
         function it_has_savegrid_that_can_be_chained(test)
-            temp = test.applyFixture(matlab.unittest.fixtures.TemporaryFolderFixture());
-            file = temp.Folder + "/grid.mat";
+            file = tempname() + ".mat";
+            finally = onCleanup(@() delete(file));
 
             expect = containers.Grid(rand(3), {1:3, 2:4}, ["a", "b"]);
             actual = savegrid(file, expect);

@@ -42,7 +42,7 @@ function varargout = map(self, varargin)
     nDims = numel(dims);
     iter = self.Iter;
     sz = size(self);
-    iteratorPrototype = cell2struct(cell(nDims, 1), dims, 1);
+    v = cell(nDims, 1);
 
     % init output containers
     for k = 1:numel(grids)
@@ -57,7 +57,7 @@ function varargout = map(self, varargin)
 
     if nInputs < numel(grids)
         % with matrices, we can use arrayfun to cover all data points
-        [varargout{1:nargout}] = arrayfun(@mapAsVector, grids{:});
+        [varargout{1:nargout}] = arrayfun(@(varargin) mapFcn([varargin{:}]), grids{:});
     elseif nInputs == numel(grids)
         % with matrices, we can use arrayfun to cover all data points
         [varargout{1:nargout}] = arrayfun(mapFcn, grids{:});
@@ -66,7 +66,9 @@ function varargout = map(self, varargin)
         [varargout{1:nargout}] = arrayfun(mapFcn, grids{:}, iter);
     else
         % iterator will be computed from linear indices
-        [varargout{1:nargout}] = arrayfun(@mapWithIter, reshape(1:prod(sz), [sz, 1, 1]), grids{:});
+        f = @(k, varargin) mapFcn(varargin{:}, iterator(k));
+        k = reshape(1:prod(sz), [sz, 1, 1]);
+        [varargout{1:nargout}] = arrayfun(f, k, grids{:});
     end
 
     % reassign outputs to grids
@@ -78,23 +80,15 @@ function varargout = map(self, varargin)
     % only local functions below
     return
 
-    function varargout = mapWithIter(k, varargin)
-        [varargout{1:nargout}] = mapFcn(varargin{:}, iterator(k));
-    end
-
-    function varargout = mapAsVector(varargin)
-        [varargout{1:nargout}] = mapFcn([varargin{:}]);
-    end
-
     function s = iterator(k)
-        s = iteratorPrototype;
         k = k - 1;
         for iDim = 1:nDims
             n = sz(iDim);
             i = mod(k, n);
             k = (k - i) / n;
-            s.(dims(iDim)) = iter{iDim}(:, i + 1);
+            v{iDim} = iter{iDim}(:, i + 1);
         end
+        s = cell2struct(v, dims);
     end
 end
 

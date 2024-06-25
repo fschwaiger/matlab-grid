@@ -1,7 +1,9 @@
-classdef GridIteratorTests < matlab.perftest.TestCase %#ok<*NASGU,*ASGLU>
+classdef (SharedTestFixtures = {
+        matlab.unittest.fixtures.ProjectFixture(fileparts(fileparts(fileparts(mfilename('fullpath')))))
+    }) GridIteratorTests < matlab.perftest.TestCase %#ok<*NASGU,*ASGLU>
 
     methods (Test)
-        function assign_by_name(test)
+        function ref_assign_by_name(test)
             grid = test.make_test_grid();
 
             while test.keepMeasuring()
@@ -23,7 +25,7 @@ classdef GridIteratorTests < matlab.perftest.TestCase %#ok<*NASGU,*ASGLU>
             test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));
         end
 
-        function assign_with_jit(test)
+        function ref_assign_with_jit(test)
             grid = test.make_test_grid();
 
             while test.keepMeasuring()
@@ -55,11 +57,11 @@ classdef GridIteratorTests < matlab.perftest.TestCase %#ok<*NASGU,*ASGLU>
             test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));
         end
 
-        function use_map_might_use_mex(test)
+        function use_map(test)
             grid = test.make_test_grid();
 
             while test.keepMeasuring()
-                iter = grid.map(@(~, it) it).data();
+                iter = data(map(grid, @(~, it) it));
             end
 
             test.assertEqual(iter(42), struct(x1=2,x2='e',x3=[1;2],x4="up"));

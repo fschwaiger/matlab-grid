@@ -1,4 +1,6 @@
-classdef GridSubsrefTests < matlab.perftest.TestCase %#ok<*NASGU,*ASGLU>
+classdef (SharedTestFixtures = {
+        matlab.unittest.fixtures.ProjectFixture(fileparts(fileparts(fileparts(mfilename('fullpath')))))
+    }) GridSubsrefTests < matlab.perftest.TestCase %#ok<*NASGU,*ASGLU>
 
     methods (Test)
         function subref_dims(test)
