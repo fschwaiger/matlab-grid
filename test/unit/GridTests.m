@@ -1235,5 +1235,11 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(fieldnames(a), {'a';'b';'c'});
             test.verifyEqual(numel(a), 50);
         end
+
+        function it_indexes_correctly(test)
+            grid = makegrid(struct('x', [1 2 3 4 5 6]), {1:3, 1:3, 1:3}, ["a", "b", "c"]);
+
+            test.verifyEqual(grid{1}.x(1), grid.Data(1).x(1));
+        end
     end
 end
