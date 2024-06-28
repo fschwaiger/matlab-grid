@@ -53,6 +53,30 @@ The grid class is inspired by [Laravel Collections](https://laravel.com/docs/9.x
 The following sections provide an overview. For detailed help, use `help containers.Grid/funcname`.
 
 
+## Defining Grids
+
+You can define new grids in one of the following ways, each is equivalent:
+
+```matlab
+grid = containers.Grid(data, iter, dims)
+
+grid = makegrid(data, iter, dims)
+
+grid = containers.Grid()
+grid.Data = data
+grid.Iter = iter
+grid.Dims = dims
+
+grid = makegrid(data, {
+    dims(1), iter{1}
+    dims(2), iter{2}
+    ...
+})
+```
+
+NOTE: The iterator `iter` must be a cell array, where each cell contains an array of iterator values. The 1st dimension can be arbitrary, and most likely will be == 1. The 2nd dimension is the most important, as it will be the one that is iterated over. Any further dimensions in the iterator cell array are unsupported. That is, iter{n} defines size(iter{n}, 2) iterations for the n-th dimension.
+
+
 ## Grid Slicing
 
 Just like within a `table`, you can subreference a grid **by index** or **by label**. The return value depends on your use of the operator. To index by numerical indices, use:

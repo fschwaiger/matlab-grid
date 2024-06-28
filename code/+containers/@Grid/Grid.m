@@ -83,6 +83,11 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     % You can put any kind of matrix data in the grid, as long as the matrix dimensions
     % remain consistent with the iterators - event struct, object and cell matrices.
     %
+    % The iterators in the cell array can have an arbitrary 1st dimension, most likely == 1,
+    % but columns are allowed. The 2nd dimension is the one that is iterated over. Any
+    % further dimensions in the iterator cell array are unsupported. That is, iter{n}
+    % defines size(iter{n}, 2) iterations for the n-th dimension.
+    %
     % Grids can be sliced in several ways using () or {} indexing. The ()
     % indexing operator returns a new grid, while the {} indexing operator
     % returns the data at the given indices. This behavior is similar to
