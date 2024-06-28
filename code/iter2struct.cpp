@@ -64,7 +64,7 @@ private:
     {
         Array itDim, slice;
         size_t iCol;
-        for (size_t iDim = 0; iDim < result.getNumberOfFields(); iDim++)
+        for (size_t iDim = 0; iDim < sizes.size(); iDim++)
         {
             itDim = iters[iDim];
             iCol = iSource % sizes[iDim];
@@ -165,7 +165,7 @@ private:
     inline TypedArray<T> sliceArray(const TypedArray<T> &iter, size_t k)
     {
         auto nRows = iter.getDimensions()[0];
-        auto first = iter.begin() + k;
+        auto first = iter.begin() + (k * nRows);
         auto last = first + nRows;
         return factory.createArray({nRows, 1}, first, last);
     }
