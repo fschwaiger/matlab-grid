@@ -617,6 +617,17 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(c.Data(1:1,  : ,  : ), 1 * ones(1, 3, 3));
             test.verifyEqual(c.Data( : , 1:2,  : ), 1 * ones(3, 2, 3));
         end
+        
+        function it_joins_outer_with_vector(test)
+            a = containers.Grid(1, {eye(3), 1:3, 1:3}, ["a", "b", "c"]);
+            b = containers.Grid(2, {[0, 0; 1, 0; 0, 1], 3:3, 1:3}, ["a", "b", "c"]);
+            c = union(a, b, @plus, 0);
+            test.verifyEqual(c.Iter, {eye(3), 1:3, 1:3});
+            test.verifyEqual(c.Dims, a.Dims);
+            test.verifyEqual(c.Data(2:3, 3:3, 1:3), 3 * ones(2, 1, 3));
+            test.verifyEqual(c.Data(1:1,  : ,  : ), 1 * ones(1, 3, 3));
+            test.verifyEqual(c.Data( : , 1:2,  : ), 1 * ones(3, 2, 3));
+        end
 
         function it_joins_outer_with_partial_overlap(test)
             a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]);

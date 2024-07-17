@@ -89,7 +89,7 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
             end
 
             % append to iterator array
-            a.Iter{k} = [a.Iter{k}, b.Iter{k}(added{k})];
+            a.Iter{k} = [a.Iter{k}, b.Iter{k}(:, added{k})];
 
             % determine index for current dimension, make others ':'
             where = repmat({':'}, 1, ndims(a));
@@ -100,12 +100,14 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
         end
     end
 
-    function varargout = mysetdiff(a, b)
+    function [it, add] = mysetdiff(a, b)
         if isstring(a) ~= isstring(b)
             a = string(a);
             b = string(b);
         end
-        [varargout{1:nargout}] = setdiff(a, b);
+        [it, add] = setdiff(a', b', "rows");
+        it = it';
+        add = add';
     end
 end
 
