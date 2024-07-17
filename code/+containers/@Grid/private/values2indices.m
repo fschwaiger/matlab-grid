@@ -33,7 +33,9 @@ function indices = values2indices(self, values)
         if ischar(v) && strcmp(v, ':')
             indices = ':';
         else
-            indices = arrayfun(@(k) findnaneq(it, v(:, k)), 1:size(v, 2));
+            indices = arrayfun(@(k) findnaneq(it, v(:, k)), ...
+                1:size(v, 2), "Uniform", false);
+            indices = [indices{:}];
         end
     end
 
@@ -42,9 +44,6 @@ function indices = values2indices(self, values)
 
         index = ismissing(search) & ismissing(array) | array == search;
         index = find(all(index, 1));
-
-        assert(not(isempty(index)), "grid:InvalidInput", ...
-            "Cannot select nonexisting iterator values.");
     end
 end
 
