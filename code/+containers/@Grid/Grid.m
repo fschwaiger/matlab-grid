@@ -132,7 +132,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %
     % See also makegrid
 
-    % %#release include file ../../../LICENSE.md
+    % %#release include file ../../../LICENSE.txt
 
     properties (SetAccess = private)
         % High-dimensional data container.
