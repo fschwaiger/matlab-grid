@@ -15,7 +15,7 @@ function mask = struct2args(self, values)
         for k = 1:numel(indices)
             mask(indices{k}{:}) = true;
         end
-    elseif isscalar(theSize)
+    elseif isscalar(theSize) || issparse(self)
         % create a linear index mask, preserving the order
         mask = cell2mat([indices{:}]);
     else

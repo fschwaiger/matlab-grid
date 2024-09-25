@@ -1252,5 +1252,12 @@ classdef GridTests < AbstractTestCase
 
             test.verifyEqual(grid{1}.x(1), grid.Data(1).x(1));
         end
+
+        function it_indexes_sparse_with_keyvalue(test)
+            d = makegrid(rand(2, 2, 2), {1:2, 3:4, 5:6});
+            s = sparse(d);
+            test.verifyEqual(s(x1=1, x2=4).Data, reshape(d.Data(1, 2, :), [], 1));
+            test.verifyEqual(s(struct(x1=1, x2=4)).Data, reshape(d.Data(1, 2, :), [], 1));
+        end
     end
 end
