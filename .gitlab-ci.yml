@@ -4,7 +4,7 @@ include:
 
 variables:
   RELEASE_TEMPDIR: "fschwaiger-matlab-grid-${CI_COMMIT_TAG}"
-  RELEASE_INCLUDE: "code,LICENSE.md,README.md,resources/project,Grid.prj,test/unit"
+  RELEASE_INCLUDE: "code,LICENSE.txt,README.md,resources/project,Grid.prj,test/unit"
   RELEASE_EXCLUDE: "test/unit/ReleaseTests.m"
   MATLAB_VERSION: 2021a
 
