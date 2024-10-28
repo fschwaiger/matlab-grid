@@ -146,32 +146,60 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     end
 
     methods
-        function self = Grid(data, iter, dims, user, options)
-            arguments
-                data = []
-                iter (:, :) {mustBeCellOrStruct} = {} %#ok<INUSA>
-                dims (1, :) string = strings(1, 0) %#ok<INUSA>
-                user = [] %#ok<INUSA>
-                options.Data = data
-                options.Iter (:, :) {mustBeCellOrStruct} = iter
-                options.Dims (1, :) string {mustBeVarname} = dims
-                options.User = user
-            end
+        function self = Grid(varargin)
             
+            % empty grid
+            if nargin == 0
+                return
+            end
+
+            args = {[], {}, strings(1, 0), []};
+            iNamedField = 0;
+            iImplicitField = 1;
+            adhocIterator = [];
+            for k = 1:nargin
+                arg = varargin{k};
+                if k < nargin && iNamedField == 0 && isempty(adhocIterator) && ((ischar(arg) && isrow(arg)) || (isstring(arg) && isscalar(arg)))
+                    [~, iNamedField] = ismember(arg, ["Data", "Iter", "Dims", "User"]);
+                    if iNamedField == 0
+                        adhocIterator = arg;
+                    end
+                    iImplicitField = [];
+                elseif iNamedField ~= 0
+                    args{iNamedField} = arg;
+                    iNamedField = 0;
+                elseif ~isempty(adhocIterator)
+                    args{3}(end + 1) = string(adhocIterator);
+                    args{2}{end + 1} = arg;
+                    adhocIterator = [];
+                elseif ~isempty(iImplicitField) && iImplicitField > 4
+                    error("grid:InvalidInput", "Too many arguments given.");
+                elseif ~isempty(iImplicitField)
+                    args{iImplicitField} = arg;
+                    iImplicitField = iImplicitField + 1;
+                else
+                    error("grid:InvalidInput", "Cannot set value without a field name.");
+                end
+            end
+            options = cell2struct(args, ["Data", "Iter", "Dims", "User"], 2);
+            options.Dims = string(options.Dims(:)');
+            mustBeCellOrStruct(options.Iter);
+            mustBeVarname(options.Dims);
+
             % This variant is called when the grid is loaded from a MAT file
             % or deserialized on its way to a parallel pool worker. We do not
             % want to run the constructor again, but just copy the data.
-            if isstruct(data) && isscalar(data) && isequal(fieldnames(data), fieldnames(options))
-                self.Data = data.Data;
-                self.Iter = data.Iter;
-                self.Dims = data.Dims;
-                self.User = data.User;
+            if isstruct(options.Data) && isscalar(options.Data) && isequal(fieldnames(options.Data), fieldnames(options))
+                self.Data = options.Data.Data;
+                self.Iter = options.Data.Iter;
+                self.Dims = options.Data.Dims;
+                self.User = options.Data.User;
                 return
             end
             
             % skip setup, copy constructor
-            if isa(data, class(self))
-                self = data;
+            if isa(options.Data, class(self))
+                self = options.Data;
                 return
             end
             

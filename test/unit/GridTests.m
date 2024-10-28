@@ -5,6 +5,20 @@ classdef GridTests < AbstractTestCase
     end
 
     methods (Test)
+        function it_can_use_shorthand_constructor(test)
+            grid = containers.Grid(true, x1 = 1:3, x2 = 4:6, x3 = 7:9);
+            test.verifyEqual(grid.Data, true(3, 3, 3));
+            test.verifyEqual(grid.Iter, {1:3, 4:6, 7:9});
+            test.verifyEqual(grid.Dims, ["x1", "x2", "x3"]);
+        end
+
+        function it_can_use_shorthand_constructor_with_string(test)
+            grid = containers.Grid(Data = true, x1 = 1:3, x2 = ["up", "down"], x3 = 7:9);
+            test.verifyEqual(grid.Data, true(3, 2, 3));
+            test.verifyEqual(grid.Iter, {1:3, ["up", "down"], 7:9});
+            test.verifyEqual(grid.Dims, ["x1", "x2", "x3"]);
+        end
+
         function it_can_create_empty_grid(test)
             grid = containers.Grid(0, {1:2, 3:4}, ["a", "b"]);
             test.verifyEqual(grid.Data, zeros(2));
