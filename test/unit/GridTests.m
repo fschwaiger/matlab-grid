@@ -146,6 +146,11 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(subs.Data, data(mask));
             test.verifyTrue(isstruct(subs.Iter));
 
+            % also linear indexing
+            subs = grid(mask(:));
+            test.verifyEqual(subs.Data, data(mask));
+            test.verifyTrue(isstruct(subs.Iter));
+            
             subs = grid{mask};
             test.verifyEqual(subs, data(mask));
         end
