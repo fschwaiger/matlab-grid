@@ -819,7 +819,9 @@ classdef GridTests < AbstractTestCase
             grid = makegrid(43, {1:3, 1:3});
             grid{1, :} = 42;
             grid = grid.where(42);
+            [~, mask] = grid.where(42);
             test.verifyEqual(grid.Data, repmat(42, 1, 3));
+            test.verifyEqual(mask, {true, [true,true,true]});
             test.verifyEqual(grid.Dims, ["x1", "x2"]);
             test.verifyEqual(grid.Iter, {1:1, 1:3});
         end

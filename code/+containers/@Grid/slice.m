@@ -1,8 +1,10 @@
-function self = slice(self, varargin)
+function [self, args] = slice(self, varargin)
     % Extracts a subspace from this grid using indices or masks.
     %
     %   grid = slice(grid, 1:4, 4:5, :)
     %   grid = slice(grid, [true, true], [true, false])
+    %   grid = slice(grid, mask)
+    %   [grid, mask] = slice(grid, ...)
     %
     % See also containers.Grid/partition
 
