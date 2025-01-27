@@ -1,8 +1,10 @@
-function self = slice(self, varargin)
+function [self, args] = slice(self, varargin)
     % Extracts a subspace from this grid using indices or masks.
     %
     %   grid = slice(grid, 1:4, 4:5, :)
     %   grid = slice(grid, [true, true], [true, false])
+    %   grid = slice(grid, mask)
+    %   [grid, mask] = slice(grid, ...)
     %
     % See also containers.Grid/partition
 
@@ -19,6 +21,7 @@ function self = slice(self, varargin)
     if isscalar(args) && islogical(args{1}) && nDim > 1
         % cache set of all dimensions iterator
         mask = args{1};
+        mask = reshape(mask, size(self));
 
         % cell of logical masks for all dimensions
         args = arrayfun(@(iDim) reshape(any(mask, setdiff(dims, iDim)), 1, []), dims, 'Uniform', false);

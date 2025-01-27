@@ -444,7 +444,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = pluck(self, varargin);
         self = reject(self, fcn);
         self = retain(self, dims, reduceFcn);
-        self = slice(self, varargin);
+        [self, args] = slice(self, varargin);
         self = sample(self, k);
         varargout = save(self, file, varargin)
         self = sort(self);
@@ -456,7 +456,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = union(self, with, joinFcn, missingSelf, missingWith);
         self = user(self, varargin);
         varargout = vec(self, varargin);
-        self = where(self, keyOrValue, value);
+        [self, args] = where(self, keyOrValue, value);
     end
 
     methods (Static)
