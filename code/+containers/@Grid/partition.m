@@ -23,12 +23,9 @@ function varargout = partition(self, varargin)
     elseif nargin > 2
         % specify splits by dimension slice
         [varargout{1:nargout}] = partitionBySlice(varargin);
-    elseif issparse(self)
-        % specify splits automatically
-        [varargout{1:nargout}] = partitionSparseIntoEqualParts(varargin{1});
     else
         % specify splits automatically
-        [varargout{1:nargout}] = partitionIntoEqualParts(varargin{1});
+        [varargout{1:nargout}] = partitionIntoMostlyEqualParts(varargin{1});
     end
     
     function varargout = partitionBySlice(subs)
@@ -66,89 +63,11 @@ function varargout = partition(self, varargin)
         varargout = arrayfun(@(iPart) {slice(self, mask == iPart)}, 1:nParts);
     end
 
-    function varargout = partitionSparseIntoEqualParts(N)
+    function varargout = partitionIntoMostlyEqualParts(nParts)
         % Partitions the grid into N mostly equal parts.
         
-        n = numel(self);
-        d = mat2cell(self.Data, diff(round(linspace(0, n, N + 1))));
-        i = mat2cell(self.Iter, diff(round(linspace(0, n, N + 1))));
-        self.Data = [];
-        self.Iter(:) = [];
-        varargout = repmat({self}, 1, N);
-        for k = 1:N
-            varargout{k}.Data = d{k};
-            varargout{k}.Iter = i{k};
-        end
-    end
-
-    function varargout = partitionIntoEqualParts(N)
-        % Partitions the grid into N mostly equal parts.
-
-        mySize = size(self);
-        [mySize, largest] = sort(mySize);
-        factors = factor(N);
-
-        % if we have more factors than dimensions, aggregate them so that only combinations from mySize remain
-        while numel(factors) > numel(mySize)
-            for a = 1:numel(factors)
-                for b = a+1:numel(factors)
-                    if any(mod(mySize, factors(a) * factors(b)) == 0)
-                        factors(a) = factors(a) * factors(b);
-                        factors(b) = 1;
-                    end
-                end
-            end
-            factors(factors == 1) = [];
-            factors = sort(factors);
-        end
-
-        % now we want to repeatedly split the largest dimension by the largest factor
-        iDim = numel(mySize);
-        splits = num2cell(mySize);
-        for iFactor = flip(1:numel(factors))
-            % best fit for split
-            split = floor(mySize(iDim) / factors(iFactor));
-            assert(split > 0);
-            % mat2cell needs an array of these splits
-            split = repmat(split, 1, factors(iFactor));
-            % the last split will be increased to account for rounding
-            split(end) = split(end) + mySize(iDim) - (split(end) * factors(iFactor));
-            % split the matrix along the iDim-th largest dimension
-            splits{iDim} = split;
-            % use next largest dimension
-            iDim = iDim - 1;
-        end
-
-        % undo sorting of cell array
-        splits(largest) = splits;
-
-        % split the nd space into (N) parts
-        d = mat2cell(self.Data, splits{1:ndims(self.Data)});
-        n = ndims(self);
-
-        % also do the same with the iterators
-        iters = cell(1, n);
-        [iters{:}] = ndgrid(self.Iter{:});
-        iters = cellfun(@(iter) mat2cell(iter, splits{:}), iters, 'Uni', false);
-
-        % create an array of self from the current one as prototype, and
-        % make it empty before duplication, could exhaust memory else
-        self.Data = [];
-        varargout = repmat({self}, 1, numel(d));
-
-        % assign the data and iterator slices to each partition
-        for k = 1:numel(d)
-            varargout{k}.Data = d{k};
-            varargout{k}.Iter = arrayfun(@(l) kthDim(iters{l}{k}, l), 1:n, 'Uni', false);
-        end
-    end
-
-    function v = kthDim(v, k)
-        % KTHDIM - helper function to extract values across a given dimension
-
-        subs = num2cell(ones(1, ndims(v)));
-        subs{k} = ':';
-        v = reshape(v(subs{:}), 1, []);
+        mask = reshape(ceil(linspace(eps, nParts, numel(self))), size(self.Data));
+        varargout = arrayfun(@(iPart) slice(self, mask == iPart), 1:nParts, Uniform=false);
     end
 end
 
