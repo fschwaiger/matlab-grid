@@ -93,7 +93,7 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
 
             % determine index for current dimension, make others ':'
             where = repmat({':'}, 1, ndims(a));
-            where{k} = feval(@(s) s+1:s+numel(added{k}), size(a.Data, k));
+            where{k} = size(a.Data, k) + (1:numel(added{k}));
 
             % assign missing value to extended dimension
             a.Data(where{:}) = m;
