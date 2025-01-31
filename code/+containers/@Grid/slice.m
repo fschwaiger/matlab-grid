@@ -21,7 +21,7 @@ function [self, args] = slice(self, varargin)
     if isscalar(args) && islogical(args{1}) && nDim > 1
         % cache set of all dimensions iterator
         mask = args{1};
-        mask = reshape(mask, size(self));
+        mask = reshape(mask, size(self.Data));
 
         % cell of logical masks for all dimensions
         args = arrayfun(@(iDim) reshape(any(mask, setdiff(dims, iDim)), 1, []), dims, 'Uniform', false);

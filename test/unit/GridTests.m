@@ -535,6 +535,13 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(numel(grid.Data), 6);
         end
 
+        function it_can_slice_sparse_by_function(test)
+            grid = containers.Grid(false, {1:2, 1:3, 1:3}, ["b", "a", "c"]).sparse();
+            grid = test.verifyWarningFree(@() grid.slice(@(value, key) key.a == 3));
+            test.verifySize(grid, [2, 1, 3]);
+            test.verifyEqual(numel(grid.Data), 6);
+        end
+
         function it_can_partition_only_if_rectangular(test)
             grid = containers.Grid(false, {1:2, 1:3, 1:3}, ["b", "a", "c"]);
             grid = grid.partition(@(value, key) key.a == key.b);
