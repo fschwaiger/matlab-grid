@@ -6,6 +6,7 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
     %   c = union(a, b, @myJoinFcn)
     %   c = union(a, b, @myJoinFcn, missing)
     %   c = union(a, b, @myJoinFcn, missingA, missingB)
+    %   c = union(a, {b...}, @myJoinFcn, missingA, missingB)
     %
     % The 3rd input argument is a function handle to produce value
     % joins, both for pairwise element joins and reduce operations,
@@ -17,6 +18,9 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
     % given <missing> scalar value. You can specify missing values
     % individually for both grids.
     %
+    % The other grid may also be a cell array of other grids, which
+    % are then joined in sequence.
+    %
     % See also containers.Grid/intersect, containers.Grid/join
 
     if nargin < 4
@@ -25,6 +29,13 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
 
     if nargin < 5
         missingWith = missingSelf;
+    end
+
+    if iscell(with)
+        for iOther = 1:numel(with)
+            self = union(self, with{iOther}, joinFcn, missingSelf, missingWith);
+        end
+        return
     end
 
     % no need to continue, outer join with empty set is identity

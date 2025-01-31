@@ -632,6 +632,18 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(c.Data(1:1,  : ,  : ), 1 * ones(1, 3, 3));
             test.verifyEqual(c.Data( : , 1:2,  : ), 1 * ones(3, 2, 3));
         end
+
+        function it_joins_multiple_grids_at_same_time(test)
+            a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]);
+            b = containers.Grid(2, {2:3, 3:3, 1:3}, ["a", "b", "c"]);
+            c = containers.Grid(3, {2:3, 3:3, 1:3}, ["a", "b", "c"]);
+            d = union(a, {b, c}, @plus, 0);
+            test.verifyEqual(d.Iter, {1:3, 1:3, 1:3});
+            test.verifyEqual(d.Dims, a.Dims);
+            test.verifyEqual(d.Data(2:3, 3:3, 1:3), 6 * ones(2, 1, 3));
+            test.verifyEqual(d.Data(1:1,  : ,  : ), 1 * ones(1, 3, 3));
+            test.verifyEqual(d.Data( : , 1:2,  : ), 1 * ones(3, 2, 3));
+        end
         
         function it_joins_outer_with_vector(test)
             a = containers.Grid(1, {eye(3), 1:3, 1:3}, ["a", "b", "c"]);
