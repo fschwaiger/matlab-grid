@@ -11,7 +11,7 @@ function self = retain(self, dims, reduceFcn)
     % examples for valid reduction functions are:
     %
     %   @mean (only when collapsing a single dimension)
-    %   @(x) mean(x, 'all')
+    %   @(x) mean(x, "all')
     %   @(x) sum(x, 'all')
     %   @(x) max(x, [], 'all')
     %   @join
@@ -21,17 +21,29 @@ function self = retain(self, dims, reduceFcn)
     %    grid = containers.Grid([], {1:8, 1:9, 1:10}, ["a", "b", "c"])
     %    grid = grid.retain(["b", "c"], @mean)
     %
-    % See also containers.Grid/collapse
+    % See also containers.Grid/collapse`
 
     % the user can specify dimension indices as logical array
     if islogical(dims)
+        if numel(dims) ~= ndims(self)
+            error("grid:InvalidInput", "Cannot retain() with logical: array has %d " + ...
+                "entries, but grid has %d dimensions.", numel(dims), ndims(self));
+        end
         dims = find(dims);
     end
 
     % the user can specify dimension indices OR strings
     if not(isnumeric(dims))
         dims = string(dims);
+        if ~all(ismember(dims, self.Dims))
+            error("grid:InvalidInput", "Unknown dimension(s) %s, check for typos. " + ...
+                "Grid has dimensions: %s.", jsonencode(setdiff(dims, self.Dims)), jsonencode(self.Dims));
+        end
         dims = arrayfun(@(d) find(ismember(self.Dims, d)), dims);
+    end
+
+    if min(dims) < 1 || max(dims) > ndims(self)
+        error("grid:InvalidInput", "Dimension index %d out of bounds.", find(dims < 1 | dims > ndims(self), 1));
     end
 
     % these are the dimensions we need to collapse
