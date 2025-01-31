@@ -29,7 +29,7 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
     end
     
     if nargin < 4
-        missingSelf = feval(class(self.Data), nan);
+        missingSelf = suggestNeutralScalarElement(self.Data);
     end
     
     if nargin < 5
@@ -131,6 +131,25 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
             v = b;
         elseif ismissing(b)
             v = a;
+        end
+    end
+
+    function n = suggestNeutralScalarElement(v)
+        if isnumeric(v)
+            n = nan;
+        elseif islogical(v)
+            n = false;
+        elseif isstring(v)
+            n = string(missing);
+        elseif iscell(v)
+            n = {missing};
+        elseif isstruct(v)
+            n = struct();
+            for f = string(fieldnames(v))'
+                n.(f) = missing;
+            end
+        else
+            n = missing;
         end
     end
 end
