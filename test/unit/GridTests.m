@@ -633,6 +633,16 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(c.Data( : , 1:2,  : ), 1 * ones(3, 2, 3));
         end
 
+        function it_joins_outer_without_overlap_and_function(test)
+            a = containers.Grid(1, {1:2, 1:3, 1:3}, ["a", "b", "c"]);
+            b = containers.Grid(2, {3:4, 1:3, 1:3}, ["a", "b", "c"]);
+            c = union(a, b);
+            test.verifyEqual(c.Iter, {1:4, 1:3, 1:3});
+            test.verifyEqual(c.Dims, a.Dims);
+            test.verifyEqual(c.Data(1:2, 1:3, 1:3), 1 * ones(2, 3, 3));
+            test.verifyEqual(c.Data(3:4, 1:3, 1:3), 2 * ones(2, 3, 3));
+        end
+
         function it_joins_multiple_grids_at_same_time(test)
             a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]);
             b = containers.Grid(2, {2:3, 3:3, 1:3}, ["a", "b", "c"]);

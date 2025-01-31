@@ -10,7 +10,8 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
     %
     % The 3rd input argument is a function handle to produce value
     % joins, both for pairwise element joins and reduce operations,
-    % if dimension names overlap partially.
+    % if dimension names overlap partially. If the function handle
+    % is omitted, the default join is the identity function.
     %
     % Where the dimension names have no overlap, the original grids
     % will be repeated. Where dimensions match but iterators are not
@@ -23,10 +24,14 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
     %
     % See also containers.Grid/intersect, containers.Grid/join
 
+    if nargin < 3 || isempty(joinFcn)
+        joinFcn = @join;
+    end
+    
     if nargin < 4
         missingSelf = feval(class(self.Data), nan);
     end
-
+    
     if nargin < 5
         missingWith = missingSelf;
     end
@@ -119,6 +124,14 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
         [it, add] = setdiff(a', b', "rows");
         it = it';
         add = add';
+    end
+
+    function v = join(a, b)
+        if ismissing(a)
+            v = b;
+        elseif ismissing(b)
+            v = a;
+        end
     end
 end
 
