@@ -279,6 +279,17 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(size(grid), [10, 1]);
         end
 
+        function it_validates_input_for_retain(test)
+            grid = containers.Grid(rand(10));
+            test.verifyWarningFree(@() grid.retain("x2", @mean));
+            test.verifyWarningFree(@() grid.retain(2, @mean));
+            test.verifyWarningFree(@() grid.retain([false, true], @mean));
+            test.verifyError(@() grid.retain(false(1,3)), "grid:InvalidInput");
+            test.verifyError(@() grid.retain(false(1,1)), "grid:InvalidInput");
+            test.verifyError(@() grid.retain(3), "grid:InvalidInput");
+            test.verifyError(@() grid.retain("x3"), "grid:InvalidInput");
+        end
+
         function it_can_retain_dim_if_sparse(test)
             grid = makegrid(1, {0:3, 0:3, 0:3, 0:3});
             grid = sparse(grid);

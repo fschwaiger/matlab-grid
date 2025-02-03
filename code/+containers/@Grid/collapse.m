@@ -30,6 +30,10 @@ function self = collapse(self, dims, reduceFcn)
 
     % the user can specify dimension indices OR strings OR logical mask
     if islogical(dims)
+        if numel(dims) ~= ndims(self)
+            error("grid:InvalidInput", "Cannot retain() with logical: array has %d " + ...
+                "entries, but grid has %d dimensions.", numel(dims), ndims(self));
+        end
         dims = find(dims);
     end
 
