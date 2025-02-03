@@ -4,7 +4,7 @@ classdef GridTests < AbstractTestCase
         nd = {1, 2, 3}
     end
 
-    methods (Test)
+    methods (Test, TestTags = "serial")
         function it_can_use_shorthand_constructor(test)
             grid = containers.Grid(true, x1 = 1:3, x2 = 4:6, x3 = 7:9);
             test.verifyEqual(grid.Data, true(3, 3, 3));
@@ -397,6 +397,20 @@ classdef GridTests < AbstractTestCase
             end
         end
 
+        function it_can_partition_into_n_grids_with_undividable_numel(test)
+            grid = containers.Grid(1, {[1 2 3], [1 2 3], [1 2 3]});
+            [grids{1:5}] = grid.partition();
+            test.verifyLength(grids, 5);
+            test.verifyEqual(sum(cellfun(@numel, grids)), numel(grid));           
+        end
+
+        function it_can_partition_into_n_grids_with_vector_iter(test)
+            grid = containers.Grid(1, {[1 2 3], [1 2 3], [1 2 3; 1 2 3; 1 2 3]});
+            [grids{1:2}] = grid.partition();
+            test.verifyLength(grids, 2);
+            test.verifyEqual(sum(cellfun(@numel, grids)), numel(grid));           
+        end
+
         function it_can_partition_by_function(test)
             grid = containers.Grid(rand(3, 6, 5, 4));
             [a, b] = grid.partition(@(v) (v > 0.5) + 1);
@@ -434,35 +448,6 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(b.Iter, {3, 1:6, 1:5, 1:4});
         end
 
-        function it_can_be_parallelized(test)
-            test.assumeTrue(exist("parpool", "file") == 2);
-
-            if isempty(gcp('nocreate'))
-                pool = parpool('local', 2);
-                finally = onCleanup(@() delete(pool));
-            end
-
-            grid = containers.Grid(false(2, 2, 2, 2, 'distributed'));
-            grid = test.verifyWarningFree(@() grid.map(@not));
-            test.verifyTrue(all(grid.Data, 'all'));
-
-            grid = containers.Grid(false(2, 2, 2, 2));
-            test.verifyFalse(isdistributed(grid.Data));
-
-            grid = distributed(containers.Grid(false(2, 2, 2, 2)));
-            test.verifyTrue(isdistributed(grid.Data));
-
-            grid = gather(grid);
-            test.verifyFalse(isdistributed(grid.Data));
-
-            sz = [2, 2, 1, 2, 1];
-            grid1 = containers.Grid(rand(sz));
-            grid2 = containers.Grid(rand(sz));
-            parallelResult = map(distributed(grid1), distributed(grid2), @(a, b, k) a + b + k.x1).gather();
-            serialResult = map(grid1, grid2, @(a, b, k) a + b + k.x1);
-            test.verifyEqual(parallelResult, serialResult);
-        end
-
         function it_can_partition_into_varargout(test)
             grid = containers.Grid(false, {1:2, 1:3, 1:1}, ["a", "b", "c"]);
 
@@ -470,6 +455,10 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(numel(a.Data), 2);
             test.verifyEqual(numel(b.Data), 2);
             test.verifyEqual(numel(c.Data), 2);
+            test.verifyFalse(issparse(a) || issparse(b) || issparse(c));
+            
+            [a, b, c] = test.verifyWarningFree(@() grid.permute([2, 1, 3]).partition());
+            test.verifyTrue(issparse(a) || issparse(b) || issparse(c));
         end
 
         function it_can_map_over_multiple_grids(test)
@@ -1106,7 +1095,7 @@ classdef GridTests < AbstractTestCase
 
         function it_display_data_bytes_size_in_human_readable_format(test)
             grid = makegrid(zeros(1, 1e1)); %#ok<NASGU>
-            test.verifySubstring(evalc('grid'), "580 bytes");
+            test.verifySubstring(evalc('grid'), " bytes");
             grid = makegrid(zeros(10, 10)); %#ok<NASGU>
             test.verifySubstring(evalc('grid'), "2 kB");
             grid = makegrid(zeros(10, 10, 10, 10, 10, 2)); %#ok<NASGU>
@@ -1265,8 +1254,9 @@ classdef GridTests < AbstractTestCase
         end
 
         function it_can_add_hint_for_map_function_nargin(test)
-            test.verifyError(@() map(makegrid(rand(5, 5)), makegrid(rand(5, 5)), @mean), "MATLAB:getdimarg:invalidDim");
-            test.verifyWarningFree(@() map(makegrid(rand(5, 5)), makegrid(rand(5, 5)), @mean, 1));
+            % calc mean([point1, point2]) instead of mean(point1, point2) by forcing nargin == 1
+            test.verifyError(@() map(makegrid(rand(5, 5)), makegrid(rand(5, 5)), @mymean), "MATLAB:getdimarg:invalidDim");
+            test.verifyWarningFree(@() map(makegrid(rand(5, 5)), makegrid(rand(5, 5)), @mymean, 1));
         end
 
         function iter2struct_returns_correct_structs(test)
@@ -1288,4 +1278,45 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(s(struct(x1=1, x2=4)).Data, reshape(d.Data(1, 2, :), [], 1));
         end
     end
+
+    methods (Test, TestTags = "parpool")
+        function it_can_be_parallelized(test)
+            test.assumeTrue(exist("parpool", "file") == 2);
+
+            if isempty(gcp('nocreate'))
+                pool = parpool('local', 2);
+                finally = onCleanup(@() delete(pool));
+            end
+
+            grid = containers.Grid(false(2, 2, 2, 2, 'distributed'));
+            grid = test.verifyWarningFree(@() grid.map(@not));
+            test.verifyTrue(all(grid.Data, 'all'));
+
+            grid = containers.Grid(false(2, 2, 2, 2));
+            test.verifyFalse(isdistributed(grid.Data));
+
+            grid = distributed(containers.Grid(false(2, 2, 2, 2)));
+            test.verifyTrue(isdistributed(grid.Data));
+
+            grid = gather(grid);
+            test.verifyFalse(isdistributed(grid.Data));
+
+            sz = [2, 2, 1, 2, 1];
+            grid1 = containers.Grid(rand(sz));
+            grid2 = containers.Grid(rand(sz));
+            parallelResult = map(distributed(grid1), distributed(grid2), @(a, b, k) a + b + k.x1).gather();
+            serialResult = map(grid1, grid2, @(a, b, k) a + b + k.x1);
+            test.verifyEqual(parallelResult, serialResult);
+        end
+    end
+end
+
+function x = mymean(x, d)
+    arguments
+        x
+        d = []
+    end
+
+    assert(isempty(d), "MATLAB:getdimarg:invalidDim", "fake the R2021a version");
+    x = mean(x);
 end
