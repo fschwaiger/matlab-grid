@@ -6,10 +6,12 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
     %   c = union(a, b, @myJoinFcn)
     %   c = union(a, b, @myJoinFcn, missing)
     %   c = union(a, b, @myJoinFcn, missingA, missingB)
+    %   c = union(a, {b...}, @myJoinFcn, missingA, missingB)
     %
     % The 3rd input argument is a function handle to produce value
     % joins, both for pairwise element joins and reduce operations,
-    % if dimension names overlap partially.
+    % if dimension names overlap partially. If the function handle
+    % is omitted, the default join is the identity function.
     %
     % Where the dimension names have no overlap, the original grids
     % will be repeated. Where dimensions match but iterators are not
@@ -17,14 +19,28 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
     % given <missing> scalar value. You can specify missing values
     % individually for both grids.
     %
+    % The other grid may also be a cell array of other grids, which
+    % are then joined in sequence.
+    %
     % See also containers.Grid/intersect, containers.Grid/join
 
-    if nargin < 4
-        missingSelf = feval(class(self.Data), nan);
+    if nargin < 3 || isempty(joinFcn)
+        joinFcn = @join;
     end
-
+    
+    if nargin < 4
+        missingSelf = suggestNeutralScalarElement(self.Data);
+    end
+    
     if nargin < 5
         missingWith = missingSelf;
+    end
+
+    if iscell(with)
+        for iOther = 1:numel(with)
+            self = union(self, with{iOther}, joinFcn, missingSelf, missingWith);
+        end
+        return
     end
 
     % no need to continue, outer join with empty set is identity
@@ -93,7 +109,7 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
 
             % determine index for current dimension, make others ':'
             where = repmat({':'}, 1, ndims(a));
-            where{k} = feval(@(s) s+1:s+numel(added{k}), size(a.Data, k));
+            where{k} = size(a.Data, k) + (1:numel(added{k}));
 
             % assign missing value to extended dimension
             a.Data(where{:}) = m;
@@ -108,6 +124,33 @@ function self = union(self, with, joinFcn, missingSelf, missingWith)
         [it, add] = setdiff(a', b', "rows");
         it = it';
         add = add';
+    end
+
+    function v = join(a, b)
+        if ismissing(a)
+            v = b;
+        elseif ismissing(b)
+            v = a;
+        end
+    end
+
+    function n = suggestNeutralScalarElement(v)
+        if isnumeric(v)
+            n = nan;
+        elseif islogical(v)
+            n = false;
+        elseif isstring(v)
+            n = string(missing);
+        elseif iscell(v)
+            n = {missing};
+        elseif isstruct(v)
+            n = struct();
+            for f = string(fieldnames(v))'
+                n.(f) = missing;
+            end
+        else
+            n = missing;
+        end
     end
 end
 

@@ -628,9 +628,46 @@ classdef GridTests < AbstractTestCase
             c = union(a, b, @plus, 0);
             test.verifyEqual(c.Iter, {1:3, 1:3, 1:3});
             test.verifyEqual(c.Dims, a.Dims);
-            test.verifyEqual(c.Data(2:3, 3:3, 1:3), 3 * ones(2, 1, 3));
-            test.verifyEqual(c.Data(1:1,  : ,  : ), 1 * ones(1, 3, 3));
-            test.verifyEqual(c.Data( : , 1:2,  : ), 1 * ones(3, 2, 3));
+            test.verifyEqual(c{2:3, 3:3, 1:3}, 3 * ones(2, 1, 3));
+            test.verifyEqual(c{1:1,  : ,  : }, ones(1, 3, 3));
+            test.verifyEqual(c{ : , 1:2,  : }, ones(3, 2, 3));
+        end
+
+        function it_joins_struct_with_overlap(test)
+            a = containers.Grid(struct(a=42), {1:3, 1:3, 1:3}, ["a", "b", "c"]);
+            b = containers.Grid(struct(a=43), {2:3, 3:3, 1:3}, ["a", "b", "c"]);
+
+            c = union(a, b, @(a,b) b, struct(a=0));
+            test.verifyEqual(c{2:3, 3:3, 1:3}, repmat(struct(a=43), 2, 1, 3));
+            test.verifyEqual(c{1:1,  : ,  : }, repmat(struct(a=0), 1, 3, 3));
+            test.verifyEqual(c{ : , 1:2,  : }, repmat(struct(a=0), 3, 2, 3));
+
+            c = union(a, b, @(a,b) b);
+            test.verifyEqual(c{2:3, 3:3, 1:3}, repmat(struct(a=43), 2, 1, 3));
+            test.verifyEqual(c{1:1,  : ,  : }, repmat(struct(a=missing), 1, 3, 3));
+            test.verifyEqual(c{ : , 1:2,  : }, repmat(struct(a=missing), 3, 2, 3));
+        end
+
+        function it_joins_outer_without_overlap_and_function(test)
+            a = containers.Grid(1, {1:2, 1:3, 1:3}, ["a", "b", "c"]);
+            b = containers.Grid(2, {3:4, 1:3, 1:3}, ["a", "b", "c"]);
+            c = union(a, b);
+            test.verifyEqual(c.Iter, {1:4, 1:3, 1:3});
+            test.verifyEqual(c.Dims, a.Dims);
+            test.verifyEqual(c.Data(1:2, 1:3, 1:3), 1 * ones(2, 3, 3));
+            test.verifyEqual(c.Data(3:4, 1:3, 1:3), 2 * ones(2, 3, 3));
+        end
+
+        function it_joins_multiple_grids_at_same_time(test)
+            a = containers.Grid(1, {1:3, 1:3, 1:3}, ["a", "b", "c"]);
+            b = containers.Grid(2, {2:3, 3:3, 1:3}, ["a", "b", "c"]);
+            c = containers.Grid(3, {2:3, 3:3, 1:3}, ["a", "b", "c"]);
+            d = union(a, {b, c}, @plus, 0);
+            test.verifyEqual(d.Iter, {1:3, 1:3, 1:3});
+            test.verifyEqual(d.Dims, a.Dims);
+            test.verifyEqual(d.Data(2:3, 3:3, 1:3), 6 * ones(2, 1, 3));
+            test.verifyEqual(d.Data(1:1,  : ,  : ), 1 * ones(1, 3, 3));
+            test.verifyEqual(d.Data( : , 1:2,  : ), 1 * ones(3, 2, 3));
         end
         
         function it_joins_outer_with_vector(test)
