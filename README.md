@@ -74,12 +74,12 @@ grid = makegrid(data, {
 })
 ```
 
-NOTE: The iterator `iter` must be a cell array, where each cell contains an array of iterator values. The 1st dimension can be arbitrary, and most likely will be == 1. The 2nd dimension is the most important, as it will be the one that is iterated over. Any further dimensions in the iterator cell array are unsupported. That is, iter{n} defines size(iter{n}, 2) iterations for the n-th dimension.
+NOTE: The iterator `iter` must be a cell array, where each cell contains an array of iterator values. The 1st dimension can be arbitrary, and most likely will be == 1. The 2nd dimension is the most important, as it will be the one that is iterated over. Any further dimensions in the iterator cell array are unsupported. That is, `iter{n}` defines `size(iter{n}, 2)` iterations for the Nth dimension.
 
 
 ## Grid Slicing
 
-Just like within a `table`, you can subreference a grid **by index** or **by label**. The return value depends on your use of the operator. To index by numerical indices, use:
+Just like within a `table`, you can sub-reference a grid **by index** or **by label**. The return value depends on your use of the operator. To index by numerical indices, use:
 
 ```matlab
 grid(2, 2:3, 1) % returns a sub-grid
@@ -126,7 +126,7 @@ data = grid.at(42)
 [data, iter] = grid.at(42)
 ```
 
-All these subreferencing operations are applicable to assignments as well.
+All these sub-referencing operations are applicable to assignments as well.
 Use `()` to insert a sub-grid and `{}` to insert data.
 
 ```matlab
@@ -144,7 +144,7 @@ grid.filter(@(x) x == 42)
 grid.filter(@not) % to search for 0
 ```
 
-The result of the `filter()` andoperation may or may not be sparse.
+The result of the `filter()` operation may or may not be sparse.
 See [Sparse and Dense Grids] for more information.
 The follow-up operations you can chain is not affected.
 `reject()` is the logical opposite of `filter()`.
@@ -185,7 +185,7 @@ Using `extend()` you can instead add new dimensions. Data from the previous sub-
 envelope.extend("gear", ["up", "dn"])
 ```
 
-The function `sort()` will reorder and permute iterators and dimension names to be alpanumerically increasing. Sorting grids does not modify the underlying data, and grids remain compatible for iterations.
+The function `sort()` will reorder and permute iterators and dimension names to be alphanumerically increasing. Sorting grids does not modify the underlying data, and grids remain compatible for iterations.
 
 ```matlab
 sorted = grid.sort()
@@ -279,7 +279,7 @@ grid.contains(42)
 grid.contains(@(answer) answer == 42)
 ```
 
-`every()` is similar to `contains()`, but requires **all grid points** to contain the given value or fulfill the given function handle:
+`every()` is similar to `contains()`, but requires **all grid points** to contain the given value or fulfil the given function handle:
 
 ```matlab
 grid.every(42)
@@ -367,9 +367,9 @@ envelope =
 You can use [Grid Content Transformations] on sparse grids as usual.
 
 
-## Grid Parallelisation
+## Grid Parallelization
 
-To parallelise work across nodes, you can distribute content of a grid to be processed on multiple workers. There are two aspects to this.
+To parallelize work across nodes, you can distribute content of a grid to be processed on multiple workers. There are two aspects to this.
 
 First option is to `partition()` a grid into a number of subspaces equal to the number of workers. After processing, reassemble the hyperspace using `union()`:
 
