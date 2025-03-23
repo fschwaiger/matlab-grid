@@ -13,6 +13,9 @@ function varargout = subsref(self, s)
         if numel(s) > 1
             [varargout{1:nargout}] = subsref(varargout{:}, s(2:end));
         end
+    elseif s1t == "{}" && isscalar(s) && isscalar(s1s) && (isnumeric(s1s{1}) || islogical(s1s{1}))
+        % select data via named iterators: e.g. grid{42}, grid{mask}
+        varargout{1} = self.Data(s1s{:});
     elseif s1t == "{}"
         % select data via named iterators: e.g. grid{"a", "b"}
         varargout = {slice(self, s1s{:}).Data};
