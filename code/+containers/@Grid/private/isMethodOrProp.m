@@ -7,7 +7,7 @@ function tf = isMethodOrProp(self, name)
         PROPS_AND_METHODS = ["Data", "Iter", "Dims", "User", PROPS_AND_METHODS];
     end
     
-    tf = ismember(name, PROPS_AND_METHODS);
+    tf = any(strcmp(name, PROPS_AND_METHODS));
 end
 
 %#release exclude file

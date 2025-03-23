@@ -71,49 +71,49 @@ classdef (SharedTestFixtures = {
         end
 
         function raer1_read_baseline(test)
-            grid = makegrid(0, {1:10, 1:10, 1:10});
+            grid = makegrid(0, {1:10, 1:10, 1:10, 1:10, 1:10});
             data = grid.Data;
 
             while test.keepMeasuring()
-                for k = 1:1e3
+                for k = 1:1e5
                     r = data(k);
                 end
             end
         end
 
         function raer1_read_overhead_with_braces(test)
-            grid = makegrid(0, {1:10, 1:10, 1:10});
+            grid = makegrid(0, {1:10, 1:10, 1:10, 1:10, 1:10});
 
             while test.keepMeasuring()
-                for k = 1:1e3
+                for k = 1:1e5
                     r = grid{k};
                 end
             end
         end
 
         function raer1_read_overhead_with_props(test)
-            grid = makegrid(0, {1:10, 1:10, 1:10});
+            grid = makegrid(0, {1:10, 1:10, 1:10, 1:10, 1:10});
 
             while test.keepMeasuring()
-                for k = 1:1e3
+                for k = 1:1e5
                     r = grid.Data(k);
                 end
             end
         end
 
         function raer2_write_baseline(test)
-            grid = makegrid(0, {1:10, 1:10, 1:10});
+            grid = makegrid(0, {1:10, 1:10, 1:10, 1:10, 1:10});
             data = grid.Data;
 
             while test.keepMeasuring()
-                for k = 1:1e3
+                for k = 1:1e5
                     data(k) = 1;
                 end
             end
         end
 
         function raer2_write_overhead_with_braces(test)
-            grid = makegrid(0, {1:10, 1:10, 1:10});
+            grid = makegrid(0, {1:10, 1:10, 1:10, 1:10, 1:10});
             
             while test.keepMeasuring()
                 for k = 1:1e3
@@ -123,7 +123,7 @@ classdef (SharedTestFixtures = {
         end
         
         function raer2_write_overhead_with_props(test)
-            grid = makegrid(0, {1:10, 1:10, 1:10});
+            grid = makegrid(0, {1:10, 1:10, 1:10, 1:10, 1:10});
             
             while test.keepMeasuring()
                 for k = 1:1e3
