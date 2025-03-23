@@ -24,6 +24,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     %   contains      -  Returns whether it contains the given value (at iterator).
     %   data          -  Gets or sets the data of the object.
     %   dense         -  Reconstructs a rectangular grid from sparse iterator list.
+    %   dims          -  Read or write dimension names.
     %   distributed   -  Distributes the data across parallel workers.
     %   each          -  Alias for map() with no output arguments.
     %   every         -  True, if @fcn evaluates true for all data points.
@@ -326,6 +327,8 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
         %#release include file dense.m
 
+        %#release include file dims.m
+
         %#release include file distributed.m
 
         %#release include file each.m
@@ -417,6 +420,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         [tf, index] = contains(self, value);
         self = data(self, data);
         self = dense(self, default);
+        self = dims(self, dim, new);
         self = distributed(self);
         self = each(self, varargin);
         tf = every(self, fcn);

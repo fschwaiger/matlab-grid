@@ -1325,6 +1325,23 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(s(x1=1, x2=4).Data, reshape(d.Data(1, 2, :), [], 1));
             test.verifyEqual(s(struct(x1=1, x2=4)).Data, reshape(d.Data(1, 2, :), [], 1));
         end
+
+        function it_can_extract_dims_in_functional_way(test)
+            grid = makegrid(1, {1:3, 1:4}, ["a", "b"]);
+            test.verifyEqual(["a", "b"], grid.dims());
+        end
+
+        function it_can_set_dims_in_functional_way(test)
+            grid = makegrid(1, {1:3, 1:4}, ["a", "b"]);
+            grid = grid.dims(["x", "y"]);
+            test.verifyEqual(["x", "y"], grid.Dims);
+        end
+
+        function it_can_rename_one_dim_in_functional_way(test)
+            grid = makegrid(1, {1:3, 1:4}, ["a", "b"]);
+            grid = grid.dims(a = "x");
+            test.verifyEqual(["x", "b"], grid.Dims);
+        end
     end
 
     methods (Test, TestTags = "parpool")
