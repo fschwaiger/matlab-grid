@@ -37,7 +37,7 @@ function self = cat(self, grids)
 
         for k1 = 1:numel(iters) - 1
             for k2 = k1+1:numel(iters)
-                if isequal(iters(k1), iters(k2))
+                if isequaln(iters(k1), iters(k2))
                     error("grid:Concat", "Grids must have different iterators");
                 end
             end
@@ -49,7 +49,7 @@ function self = cat(self, grids)
     end
 
     concatDimensions = cellfun(@(grid) find(not(cellfun(@(it1, it2) ...
-        isequal(it1, it2), self.Iter, grid.Iter))), grids, "UniformOutput", false);
+        isequaln(it1, it2), self.Iter, grid.Iter))), grids, "UniformOutput", false);
         
     assert(all(cellfun(@(dim) numel(dim) == 1, concatDimensions)), ...
         "grid:GridConcat", "Grids must have one single mutually exclusive iterator");
@@ -61,7 +61,7 @@ function self = cat(self, grids)
     
     iters = cellfun(@(grid) grid.Iter{concatDimension}, grids, "UniformOutput", false);
     iters = horzcat(self.Iter{concatDimension}, iters{:});
-    assert(isequal(iters, transpose(unique(transpose(iters), 'rows', 'stable'))), ...
+    assert(isequaln(iters, transpose(unique(transpose(iters), 'rows', 'stable'))), ...
         "grid:GridConcat", "Grids must have the same mutually exclusive iterator");
 
     datas = cellfun(@(grid) grid.Data, grids, "UniformOutput", false);

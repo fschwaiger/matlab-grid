@@ -69,6 +69,19 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual(grid.Data, cat(2, grid1.Data, grid2.Data));
         end
 
+        function it_can_be_concatenated_even_with_nan(test)
+            grid1 = containers.Grid(rand(2, 2, 2), {1:2, 3:4, [3,nan]});
+            grid2 = containers.Grid(rand(2, 2, 2), {1:2, 5:6, [3,nan]});
+
+            test.verifyEqual(cat(grid1, grid2), cat(1, grid1, grid2));
+            test.verifyEqual(cat(grid1, grid2), [grid1, grid2]);
+            test.verifyEqual(cat(grid1, grid2), [grid1; grid2]);
+
+            grid = [grid1, grid2];
+            test.verifyEqual(grid.Iter, {1:2, [3:4, 5:6], [3, nan]});
+            test.verifyEqual(grid.Data, cat(2, grid1.Data, grid2.Data));
+        end
+
         function it_has_save_that_can_be_chained(test)
             file = tempname() + ".mat";
             finally = onCleanup(@() delete(file));
