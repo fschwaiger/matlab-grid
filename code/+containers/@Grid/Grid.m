@@ -485,11 +485,15 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay ...
         end
 
         function varargout = braceReference(self, s)
-            args = subs2args(self, s(1).Indices);
-            if isscalar(s)
-                [varargout{1:nargout}] = self.Data(args{:});
+            if isscalar(s) && (isnumeric(s(1).Indices{1}) || islogical(s(1).Indices{1}))
+                varargout{1} = self.Data(s(1).Indices{:});
             else
-                [varargout{1:nargout}] = self.Data(args{:}).(s(2:end));
+                args = subs2args(self, s(1).Indices);
+                if isscalar(s)
+                    varargout{1} = self.Data(args{:});
+                else
+                    [varargout{1:nargout}] = self.Data(args{:}).(s(2:end));
+                end
             end
         end
 

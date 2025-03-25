@@ -1,40 +1,44 @@
-function args = subs2args(self, subs)
+function subs = subs2args(self, subs)
     % Prepares the subscript arguments for slicing the grid.
     
-    if isnumeric(subs{1}) || (ischar(subs{1}) && subs{1}(1) == ':')
+    s = subs{1};
+
+    if isnumeric(s)
         % select via numeric (linear or n-dimension) indices
-        args = subs;
         return
-    elseif isstruct(subs{1})
+    elseif ischar(s) && s(1) == ':'
+        % colon indexing, still numeric
+        return
+    elseif isstruct(s)
         % select via struct: grid(struct_array)
-        args = {struct2args(self, subs{1})};
+        subs = {struct2args(self, s)};
         return
-    elseif islogical(subs{1})
+    elseif islogical(s)
         % select via mask: grid(mask)
-        args = subs;
         return
-    elseif isa(subs{1}, 'function_handle')
+    elseif isa(s, 'function_handle')
         % select via function: grid(@selector)
-        args = {map(self, subs{1}).Data};
+        subs = {map(self, s).Data};
         return
     end
 
-    dims = self.Dims;
-    assert(isstring(subs{1}) || ischar(subs{1}), "grid:Subsref", ...
+    k = subs(1:2:end);
+    v = subs(2:2:end);
+    d = self.Dims;
+    assert(isstring(s) || ischar(s), "grid:Subsref", ...
         "Index the grid via numeric, struct, logical, function_handle or key/value pair subscripts.");
-    
-    if ismember(subs{1}, dims)
-        % select via struct: grid(name, value, ...)
-        [~, order] = ismember(cellstr(subs(1:2:end)), dims);
-        args = repmat({':'}, 1, numel(dims));
-        args(order) = subs(2:2:end);
-        args = values2indices(self, args);
-        return
-    elseif startsWith(subs{1}, ".")
+
+    if startsWith(s, ".")
         % select by field value grid('.name', value, ...)
-        fields = extractAfter(cellstr(subs(1:2:end)), ".");
-        values = subs(2:2:end);
-        args = {map(self, @(data) fields2indices(self, data, fields, values)).Data};
+        k = extractAfter(cellstr(k), 1);
+        subs = {arrayfun(@(data) fields2indices(self, data, k, v), self.Data)};
+        return
+    elseif any(strcmp(s, d))
+        % select via struct: grid(name, value, ...)
+        [~, order] = ismember(string(k), d);
+        subs = repmat({':'}, 1, numel(d));
+        subs(order) = v;
+        subs = values2indices(self, subs);
         return
     end
 
