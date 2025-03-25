@@ -1,4 +1,6 @@
-classdef (Sealed) Grid < matlab.mixin.CustomDisplay
+classdef (Sealed) Grid < matlab.mixin.CustomDisplay ...
+                       & matlab.mixin.indexing.RedefinesParen ...
+                       & matlab.mixin.indexing.RedefinesBrace
     % A high-dimension grid object with named dimension iterators.
     %
     %   grid = containers.Grid(matrix)
@@ -135,7 +137,7 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
     % %#release include file ../../../LICENSE.txt
 
-    properties (SetAccess = private)
+    properties
         % High-dimensional data container.
         Data = []
         % Cell array of iterator arrays.
@@ -148,8 +150,6 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
     methods
         function self = Grid(varargin)
-            
-            % empty grid
             if nargin == 0
                 return
             end
@@ -365,8 +365,6 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
 
         %#release include file ndims.m
 
-        %#release include file numArgumentsFromSubscript.m
-
         %#release include file numel.m
 
         %#release include file only.m
@@ -396,10 +394,6 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         %#release include file squeeze.m
 
         %#release include file struct.m
-
-        %#release include file subsref.m
-
-        %#release include file subsasgn.m
 
         %#release include file union.m
 
@@ -439,7 +433,6 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         [data, iter] = last(self, fcn);
         varargout = map(self, varargin);
         n = ndims(self);
-        n = numArgumentsFromSubscript(self, s, indexingContext);
         n = numel(self);
         self = only(self, keys);
         varargout = partition(self, varargin);
@@ -455,8 +448,6 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
         self = sparse(self);
         [self, const] = squeeze(self);
         data = struct(self);
-        varargout = subsref(self, s);
-        self = subsasgn(self, s, varargin)
         self = union(self, with, joinFcn, missingSelf, missingWith);
         self = user(self, varargin);
         varargout = vec(self, varargin);
@@ -472,6 +463,53 @@ classdef (Sealed) Grid < matlab.mixin.CustomDisplay
     end
 
     methods (Access = protected)
+        function n = parenListLength(~, ~, ~)
+            n = 1;
+        end
+
+        function n = braceListLength(self, s, ~)
+            n = 1;
+            if numel(s) > 1 && s(2).Type == matlab.indexing.IndexingOperationType.Dot
+                args = subs2args(self, s(1).Indices);
+                n = numel(self.Data(args{:}));
+            end
+        end
+
+        function varargout = parenReference(self, s)
+            self = slice(self, s(1).Indices{:});
+            if isscalar(s)
+                [varargout{1:nargout}] = self;
+            else
+                [varargout{1:nargout}] = self.(s(2:end));
+            end
+        end
+
+        function varargout = braceReference(self, s)
+            args = subs2args(self, s(1).Indices);
+            if isscalar(s)
+                [varargout{1:nargout}] = self.Data(args{:});
+            else
+                [varargout{1:nargout}] = self.Data(args{:}).(s(2:end));
+            end
+        end
+
+        function self = parenAssign(self, s, varargin)
+            self = braceAssign(self, s, varargin{1}.Data);
+        end
+
+        function self = braceAssign(self, s, varargin)
+            args = subs2args(self, s(1).Indices);
+            if isscalar(s)
+                [self.Data(args{:})] = varargin{:};
+            else
+                [self.Data(args{:}).(s(2:end))] = varargin{:};
+            end
+        end
+
+        function self = parenDelete(self, ~)
+            error('not implemented');
+        end
+
         function text = getHeader(self)
             % Customizes the command line object display header.
 

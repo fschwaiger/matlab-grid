@@ -176,8 +176,8 @@ classdef GridTests < AbstractTestCase
         function it_can_subsref_iterators(test)
             grid = containers.Grid(rand(2, 2), {1:2, 3:4});
 
-            test.verifyEqual(grid.x2, 3:4);
-            test.verifyEqual(grid.x1, 1:2);
+            test.verifyEqual(grid.iter("x2"), 3:4);
+            test.verifyEqual(grid.iter("x1"), 1:2);
 
             [a, b] = grid.Iter{[2, 1]};
             test.verifyEqual(a, 3:4);
@@ -187,8 +187,8 @@ classdef GridTests < AbstractTestCase
         function it_can_subsref_iterators_if_sparse(test)
             grid = containers.Grid(rand(2, 2), {1:2, 3:4}).sparse();
 
-            test.verifyEqual(grid.x1, [1,2,1,2]);
-            test.verifyEqual(grid.x2, [3,3,4,4]);
+            test.verifyEqual(grid.iter("x1"), [1,2,1,2]);
+            test.verifyEqual(grid.iter("x2"), [3,3,4,4]);
         end
 
         function it_can_subsasgn_data(test)
@@ -1112,12 +1112,6 @@ classdef GridTests < AbstractTestCase
             test.verifyEqual([grid.Data.Success], [0 0 0 1 1 1 1 1 1 0 0 0]);
         end
 
-        function it_can_select_first_iter_value(test)
-            grid = containers.Grid(1, {1:3, 1:4}, ["a", "b"]);
-            test.verifyEqual(grid.b(1), 1);
-            test.verifyEqual(grid.b(end), 4);
-        end
-
         function it_can_linear_index_and_get_both_data_and_iterator(test)
             grid = containers.Grid(rand(3, 4), {1:3, 1:4}, ["a", "b"]);
             [data, iter] = grid.at(6);
@@ -1283,8 +1277,8 @@ classdef GridTests < AbstractTestCase
         function it_extracts_deep_struct_field_via_subsref(test)
             grid = makegrid(struct('a', num2cell(struct('c', {[1;2], [3;4], [5;6]})), 'b', {4, 5, 6}));
 
-            test.verifyEqual(grid.a.c(2), [2, 4, 6]);
-            test.verifyEqual(grid.a.c(2), grid.pluck('a', 'c', 2).Data);
+            test.verifyEqual(grid.pluck("a", "c", 2).data(), [2, 4, 6]);
+            test.verifyEqual(grid.pluck("a", "c", 2).data(), grid.pluck('a', 'c', 2).Data);
         end
 
         function it_has_functional_accessors_for_data_and_iter(test)
